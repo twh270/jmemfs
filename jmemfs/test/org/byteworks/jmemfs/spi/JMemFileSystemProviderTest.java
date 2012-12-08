@@ -2,8 +2,10 @@ package org.byteworks.jmemfs.spi;
 
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
@@ -20,9 +22,16 @@ public class JMemFileSystemProviderTest {
   @Test
   public void providerShouldBeInstalled() {
     Assert
-        .assertTrue(
+        .assertNotNull(
             "JMemFileSystemProvider is not installed, check META-INF/services for existence and correct definition of java.nio.file.spi.FileSystemProvider file",
-            getProvider() != null);
+            getProvider());
+  }
+
+  @Test
+  public void shouldGetFileStore() throws IOException {
+    final FileSystemProvider p = getProvider();
+    final FileStore fs = p.getFileStore(Paths.get(JMEM_ROOT));
+    assertNotNull(fs);
   }
 
   @Test

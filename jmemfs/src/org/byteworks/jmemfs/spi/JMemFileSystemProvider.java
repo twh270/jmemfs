@@ -23,9 +23,11 @@ public class JMemFileSystemProvider extends FileSystemProvider {
   public static final String SCHEME = "jmemfs";
 
   private final JMemFileSystem theFileSystem;
+  private final JMemFileStore theFileStore;
 
   public JMemFileSystemProvider() {
     this.theFileSystem = new JMemFileSystem(this);
+    this.theFileStore = new JMemFileStore();
   }
 
   @Override
@@ -59,8 +61,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public FileStore getFileStore(final Path path) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return theFileStore;
   }
 
   @Override
