@@ -2,6 +2,7 @@ package org.byteworks.jmemfs.spi;
 
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
@@ -14,17 +15,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class JMemFileSystemProviderTest {
 
   @Test
+  public void pathShouldNotBeHidden() throws IOException {
+    final FileSystemProvider p = getProvider();
+    assertFalse(p.isHidden(Paths.get(JMEM_ROOT)));
+  }
+
+  @Test
   public void providerShouldBeInstalled() {
-    Assert
-        .assertNotNull(
-            "JMemFileSystemProvider is not installed, check META-INF/services for existence and correct definition of java.nio.file.spi.FileSystemProvider file",
-            getProvider());
+    assertNotNull(
+        "JMemFileSystemProvider is not installed, check META-INF/services for existence and correct definition of java.nio.file.spi.FileSystemProvider file",
+        getProvider());
   }
 
   @Test

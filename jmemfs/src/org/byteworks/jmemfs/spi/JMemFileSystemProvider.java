@@ -85,8 +85,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public boolean isHidden(final Path path) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return false;
   }
 
   @Override
