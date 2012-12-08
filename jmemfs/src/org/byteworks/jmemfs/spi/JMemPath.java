@@ -3,6 +3,7 @@ package org.byteworks.jmemfs.spi;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -179,8 +180,12 @@ public class JMemPath implements Path {
 
   @Override
   public URI toUri() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    try {
+      return new URI(JMemFileSystemProvider.SCHEME + ":/" + path);
+    }
+    catch (final URISyntaxException e) {
+      throw new IllegalStateException("Path cannot be converted to URI: " + path);
+    }
   }
 
   private synchronized void buildIndexes() {

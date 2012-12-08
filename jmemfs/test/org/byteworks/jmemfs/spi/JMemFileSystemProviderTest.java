@@ -1,14 +1,17 @@
 package org.byteworks.jmemfs.spi;
 
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
+import static org.byteworks.jmemfs.spi.TestCommon.JMEM_URI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
@@ -52,6 +55,17 @@ public class JMemFileSystemProviderTest {
   public void testCheckAccess() throws IOException {
     final JMemFileSystemProvider p = getProvider();
     p.checkAccess(Paths.get(JMEM_ROOT), null);
+  }
+
+  @Test
+  public void testIsSameFile() throws IOException {
+    final FileSystemProvider p = getProvider();
+    Path path1 = Paths.get(JMEM_URI("/some/path"));
+    final Path path2 = Paths.get(JMEM_URI("/some/path"));
+    assertTrue(p.isSameFile(path1, path2));
+
+    path1 = Paths.get(JMEM_URI("/another/path"));
+    assertFalse(p.isSameFile(path1, path2));
   }
 
   private JMemFileSystemProvider getProvider() {

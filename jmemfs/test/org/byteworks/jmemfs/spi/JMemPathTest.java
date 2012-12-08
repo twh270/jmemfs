@@ -4,6 +4,7 @@ import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_URI;
 import static org.junit.Assert.assertEquals;
 
+import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -12,6 +13,13 @@ import java.nio.file.Paths;
 import org.junit.Test;
 
 public class JMemPathTest {
+  @Test
+  public void shouldCreateUriFromName() {
+    final Path path = Paths.get(JMEM_URI("/o/aa"));
+    final URI uriForm = path.toUri();
+    assertEquals("jmemfs:/o/aa", uriForm.toString());
+  }
+
   @Test
   public void shouldGetFileSystemFromPath() {
     final Path path = Paths.get(JMEM_ROOT);

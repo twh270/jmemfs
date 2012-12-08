@@ -90,8 +90,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public boolean isSameFile(final Path path, final Path path2) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return path.toUri().equals(path2.toUri());
   }
 
   @Override
