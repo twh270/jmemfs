@@ -71,7 +71,7 @@ public class JMemFileSystemProviderTest {
   private JMemFileSystemProvider getProvider() {
     final List<FileSystemProvider> providers = FileSystemProvider.installedProviders();
     for (final FileSystemProvider p : providers) {
-      if (p.getScheme() == JMemFileSystemProvider.SCHEME)
+      if (p.getScheme() == JMemConstants.SCHEME)
         return (JMemFileSystemProvider) p;
     }
     return null;

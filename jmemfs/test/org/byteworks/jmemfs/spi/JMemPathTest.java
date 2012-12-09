@@ -15,10 +15,10 @@ import org.junit.Test;
 
 public class JMemPathTest {
   @Test
-  public void shouldCreateFile() {
+  public void shouldCreateFileObject() {
     Path path = Paths.get(JMEM_URI("/some/name"));
     final File file = path.toFile();
-    assertEquals("some\\name", file.toString());
+    assertEquals("\\some\\name", file.toString());
     path = file.toPath();
   }
 
@@ -39,23 +39,52 @@ public class JMemPathTest {
   @Test
   public void shouldGetNameCount() {
     Path path = Paths.get(JMEM_ROOT);
-    assertEquals(1, path.getNameCount());
+    assertEquals(0, path.getNameCount());
     path = Paths.get(JMEM_URI("/two/path"));
     assertEquals(2, path.getNameCount());
   }
 
   @Test
-  public void shouldGetNameIndexes() {
-    final Path path = Paths.get(JMEM_URI("/o/aa/bbb/defgggg"));
+  public void shouldGetNameIndexesAndNames() {
+    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    Path path = new JMemPath(fs, "");
+    assertEquals(1, path.getNameCount());
+    assertEquals("", path.getName(0).toString());
+
+    path = new JMemPath(fs, "/");
+    assertEquals(0, path.getNameCount());
+
+    path = new JMemPath(fs, "/o/aa/bbb/defgggg");
     assertEquals("o", path.getName(0).toString());
     assertEquals("aa", path.getName(1).toString());
     assertEquals("bbb", path.getName(2).toString());
     assertEquals("defgggg", path.getName(3).toString());
+
+    path = new JMemPath(fs, "relative/path/here");
+    assertEquals("relative", path.getName(0).toString());
+  }
+
+  @Test
+  public void shouldGetParent() {
+    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    Path path = Paths.get(JMEM_URI("/o/aa/bbb/defgggg"));
+    Path parent = path.getParent();
+    assertEquals("/o/aa/bbb", parent.toString());
+
+    path = new JMemPath(fs, "relative/path/here");
+    parent = path.getParent();
+    assertEquals("relative/path", parent.toString());
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldThrowOnInvalidNameIndex() {
     final Path path = Paths.get(JMEM_URI("/some/name"));
-    final Path broken = path.getName(2);
+    path.getName(2);
+  }
+
+  @Test
+  public void testConvertToString() {
+    final Path path = Paths.get(JMEM_ROOT);
+    assertEquals("/", path.toString());
   }
 }

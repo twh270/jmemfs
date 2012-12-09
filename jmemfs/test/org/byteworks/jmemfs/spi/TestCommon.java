@@ -19,7 +19,7 @@ public class TestCommon {
 
   public static URI JMEM_URI(final String path) {
     try {
-      return new URI("jmemfs://" + path);
+      return new URI("jmemfs:" + path);
     }
     catch (final URISyntaxException e) {
       e.printStackTrace();

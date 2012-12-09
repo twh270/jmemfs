@@ -1,5 +1,7 @@
 package org.byteworks.jmemfs.spi;
 
+import static org.byteworks.jmemfs.spi.JMemConstants.SEPARATOR;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -20,7 +22,7 @@ public class JMemPath implements Path {
 
   public JMemPath(final JMemFileSystem fileSystem, final String path) {
     this.fileSystem = fileSystem;
-    this.path = path.startsWith("/") ? path.substring(1) : path;
+    this.path = path;
   }
 
   @Override
@@ -67,8 +69,16 @@ public class JMemPath implements Path {
 
   @Override
   public Path getParent() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    final StringBuilder sb = new StringBuilder();
+    if (path.startsWith(SEPARATOR)) {
+      sb.append(SEPARATOR);
+    }
+    final int[] indexes = getIndexes();
+    for (int i = 0; i < indexes.length - 1; i++) {
+      sb.append(getName(i)).append(SEPARATOR);
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    return new JMemPath(fileSystem, sb.toString());
   }
 
   @Override
@@ -180,7 +190,7 @@ public class JMemPath implements Path {
   @Override
   public URI toUri() {
     try {
-      return new URI(JMemFileSystemProvider.SCHEME + ":/" + path);
+      return new URI(JMemConstants.SCHEME + ":" + path);
     }
     catch (final URISyntaxException e) {
       throw new IllegalStateException("Path cannot be converted to URI: " + path);
@@ -189,14 +199,26 @@ public class JMemPath implements Path {
 
   private synchronized void buildIndexes() {
     if (nameIndexes == null) {
-      final String[] chunks = path.split("/");
-      final int[] tempNameIndexes = new int[chunks.length];
-      int position = 0;
-      for (int i = 0; i < chunks.length; i++) {
-        tempNameIndexes[i] = position;
-        position += chunks[i].length() + 1;
+      if (path.length() == 0) {
+        nameIndexes = new int[] { 0 };
       }
-      nameIndexes = tempNameIndexes;
+      else if (SEPARATOR.equals(path)) {
+        nameIndexes = new int[0];
+      }
+      else {
+        int offset = 0;
+        if (path.startsWith(SEPARATOR)) {
+          offset = 1;
+        }
+        final String[] chunks = path.length() == 0 ? new String[1] : path.substring(offset).split(SEPARATOR);
+        final int[] tempNameIndexes = new int[chunks.length];
+        int position = 0;
+        for (int i = 0; i < chunks.length; i++) {
+          tempNameIndexes[i] = position + offset;
+          position += chunks[i].length() + 1;
+        }
+        nameIndexes = tempNameIndexes;
+      }
     }
   }
 

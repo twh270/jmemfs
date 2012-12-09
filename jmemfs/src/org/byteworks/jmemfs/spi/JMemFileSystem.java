@@ -1,11 +1,14 @@
 package org.byteworks.jmemfs.spi;
 
+import static org.byteworks.jmemfs.spi.JMemConstants.SEPARATOR;
+
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
@@ -22,7 +25,7 @@ public class JMemFileSystem extends FileSystem {
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider) {
     this.provider = jMemFileSystemProvider;
     this.env = new HashMap<String, String>();
-    this.root = new JMemDirectoryInode("/");
+    this.root = new JMemDirectoryInode(SEPARATOR);
   }
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider, final Map<String, ? > env2) {
@@ -66,8 +69,7 @@ public class JMemFileSystem extends FileSystem {
 
   @Override
   public String getSeparator() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return SEPARATOR;
   }
 
   @Override
@@ -103,6 +105,10 @@ public class JMemFileSystem extends FileSystem {
   public Set<String> supportedFileAttributeViews() {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("not implemented");
+  }
+
+  void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) {
+    final Path parent = dir.getParent();
   }
 
 }

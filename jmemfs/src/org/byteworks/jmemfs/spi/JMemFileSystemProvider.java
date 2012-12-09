@@ -1,5 +1,8 @@
 package org.byteworks.jmemfs.spi;
 
+import static org.byteworks.jmemfs.spi.JMemConstants.SCHEME;
+import static org.byteworks.jmemfs.spi.JMemConstants.SEPARATOR;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
@@ -20,14 +23,17 @@ import java.util.Map;
 import java.util.Set;
 
 public class JMemFileSystemProvider extends FileSystemProvider {
-  public static final String SCHEME = "jmemfs";
+  final JMemFileSystem theFileSystem;
+  final JMemFileStore theFileStore;
 
-  private final JMemFileSystem theFileSystem;
-  private final JMemFileStore theFileStore;
+  static JMemFileSystemProvider theInstance;
 
   public JMemFileSystemProvider() {
     this.theFileSystem = new JMemFileSystem(this);
     this.theFileStore = new JMemFileStore(theFileSystem);
+    if (theInstance == null) {
+      theInstance = this;
+    }
   }
 
   @Override
@@ -42,9 +48,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public void createDirectory(final Path dir, final FileAttribute< ? >... attrs) throws IOException {
-    // TODO Auto-generated method stub
-
-    throw new UnsupportedOperationException("not implemented");
+    theFileSystem.createDirectory(dir, attrs);
   }
 
   @Override
@@ -67,7 +71,9 @@ public class JMemFileSystemProvider extends FileSystemProvider {
   @Override
   public FileSystem getFileSystem(final URI uri) {
     checkUri(uri);
-    if (!("/".equals(uri.getPath())))
+    if (!uri.isAbsolute())
+      throw new IllegalArgumentException("URI must be absolute");
+    if (!(SEPARATOR.equals(uri.getPath())))
       throw new IllegalArgumentException("Path for filesystem root must be '/'");
     return theFileSystem;
   }
@@ -75,6 +81,8 @@ public class JMemFileSystemProvider extends FileSystemProvider {
   @Override
   public Path getPath(final URI uri) {
     checkUri(uri);
+    if (!uri.isAbsolute())
+      throw new IllegalArgumentException("URI must be absolute");
     return new JMemPath(theFileSystem, uri.getPath());
   }
 

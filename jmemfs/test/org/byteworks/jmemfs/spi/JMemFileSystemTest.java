@@ -2,6 +2,7 @@ package org.byteworks.jmemfs.spi;
 
 import static org.byteworks.jmemfs.spi.TestCommon.BAD_URI;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -34,6 +35,11 @@ public class JMemFileSystemTest {
   public void shouldGetPath() throws URISyntaxException {
     final Path path = Paths.get(JMEM_ROOT);
     assertTrue(path != null);
+  }
+
+  @Test
+  public void shouldGetSeparator() {
+    assertEquals("/", getJMemFS().getSeparator());
   }
 
   @Test(expected = FileSystemNotFoundException.class)
