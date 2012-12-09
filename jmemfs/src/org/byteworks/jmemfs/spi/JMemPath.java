@@ -163,8 +163,7 @@ public class JMemPath implements Path {
 
   @Override
   public File toFile() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return new File(toString());
   }
 
   @Override

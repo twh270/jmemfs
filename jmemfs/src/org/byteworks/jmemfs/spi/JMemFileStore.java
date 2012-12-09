@@ -7,7 +7,10 @@ import java.nio.file.attribute.FileStoreAttributeView;
 
 public class JMemFileStore extends FileStore {
 
-  public JMemFileStore() {
+  private final JMemFileSystem fileSystem;
+
+  public JMemFileStore(final JMemFileSystem fileSystem) {
+    this.fileSystem = fileSystem;
   }
 
   @Override

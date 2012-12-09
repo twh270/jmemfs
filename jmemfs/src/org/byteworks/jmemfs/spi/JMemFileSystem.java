@@ -12,13 +12,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.byteworks.jmemfs.spi.impl.JMemDirectoryInode;
+
 public class JMemFileSystem extends FileSystem {
   private final JMemFileSystemProvider provider;
   private final Map<String, ? > env;
+  JMemDirectoryInode root;
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider) {
     this.provider = jMemFileSystemProvider;
     this.env = new HashMap<String, String>();
+    this.root = new JMemDirectoryInode("/");
   }
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider, final Map<String, ? > env2) {

@@ -27,7 +27,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   public JMemFileSystemProvider() {
     this.theFileSystem = new JMemFileSystem(this);
-    this.theFileStore = new JMemFileStore();
+    this.theFileStore = new JMemFileStore(theFileSystem);
   }
 
   @Override
