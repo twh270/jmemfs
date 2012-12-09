@@ -22,7 +22,7 @@ public class JMemPath implements Path {
 
   public JMemPath(final JMemFileSystem fileSystem, final String path) {
     this.fileSystem = fileSystem;
-    this.path = path;
+    this.path = normalize(path);
   }
 
   @Override
@@ -233,5 +233,30 @@ public class JMemPath implements Path {
     if (index == nameIndexes.length - 1)
       return path.substring(nameIndexes[nameIndexes.length - 1]);
     return path.substring(nameIndexes[index], nameIndexes[index + 1] - 1);
+  }
+
+  private static String normalize(final String input) {
+    int len = input.length();
+    final int off = 0;
+    if (len == 0)
+      return input;
+    while ((len > 0) && (input.charAt(len - 1) == '/')) {
+      len--;
+    }
+    if (len == 0)
+      return "/";
+    final StringBuilder sb = new StringBuilder(len);
+    char prevChar = 0;
+    for (int i = off; i < len; i++) {
+      final char c = input.charAt(i);
+      if ((c == '/') && (prevChar == '/')) {
+        continue;
+      }
+      if (c == '\u0000')
+        throw new IllegalArgumentException("Nul character not allowed");
+      sb.append(c);
+      prevChar = c;
+    }
+    return sb.toString();
   }
 }

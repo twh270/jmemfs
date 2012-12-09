@@ -76,6 +76,13 @@ public class JMemPathTest {
     assertEquals("relative/path", parent.toString());
   }
 
+  @Test
+  public void shouldNormalizePath() {
+    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    final Path path = new JMemPath(fs, "///way//too////many/slashes/in//this//path/");
+    assertEquals("/way/too/many/slashes/in/this/path", path.toString());
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void shouldThrowOnInvalidNameIndex() {
     final Path path = Paths.get(JMEM_URI("/some/name"));
@@ -84,7 +91,20 @@ public class JMemPathTest {
 
   @Test
   public void testConvertToString() {
-    final Path path = Paths.get(JMEM_ROOT);
+    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    Path path = Paths.get(JMEM_ROOT);
     assertEquals("/", path.toString());
+
+    path = new JMemPath(fs, "");
+    assertEquals("", path.toString());
+
+    path = new JMemPath(fs, "/");
+    assertEquals("/", path.toString());
+
+    path = new JMemPath(fs, "relative/path");
+    assertEquals("relative/path", path.toString());
+
+    path = new JMemPath(fs, "/root/path/trailing/slash/");
+    assertEquals("/root/path/trailing/slash", path.toString());
   }
 }
