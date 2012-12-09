@@ -19,6 +19,16 @@ import org.junit.Test;
 public class JMemFileSystemTest {
 
   @Test
+  public void shouldCreatePathFromSegments() {
+    final FileSystem fs = getJMemFS();
+    Path path = fs.getPath("/first", "second", "third");
+    assertEquals("/first/second/third", path.toString());
+
+    path = fs.getPath("/some//", "/weird", "segments", "/here");
+    assertEquals("/some/weird/segments/here", path.toString());
+  }
+
+  @Test
   public void shouldGetFileSystemProviderFromFS() {
     final FileSystem fs = getJMemFS();
     assertTrue(fs.provider() instanceof JMemFileSystemProvider);

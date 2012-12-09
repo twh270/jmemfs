@@ -148,4 +148,12 @@ public class JMemFileSystemProvider extends FileSystemProvider {
     if (!(SCHEME.equals(path.getScheme())))
       throw new IllegalArgumentException("URI for this filesystem must be " + SCHEME);
   }
+
+  JMemFileStore getTheFileStore() {
+    return theFileStore;
+  }
+
+  JMemFileSystem getTheFileSystem() {
+    return theFileSystem;
+  }
 }

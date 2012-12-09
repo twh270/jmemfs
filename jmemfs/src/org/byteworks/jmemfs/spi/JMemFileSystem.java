@@ -51,8 +51,13 @@ public class JMemFileSystem extends FileSystem {
 
   @Override
   public Path getPath(final String first, final String... more) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    if (more == null)
+      return new JMemPath(provider.getTheFileSystem(), first);
+    final StringBuilder sb = new StringBuilder(first);
+    for (final String segment : more) {
+      sb.append("/").append(segment);
+    }
+    return new JMemPath(provider.getTheFileSystem(), sb.toString());
   }
 
   @Override
