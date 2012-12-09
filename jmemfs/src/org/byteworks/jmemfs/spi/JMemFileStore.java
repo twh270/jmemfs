@@ -6,7 +6,6 @@ import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.FileStoreAttributeView;
 
 public class JMemFileStore extends FileStore {
-
   private final JMemFileSystem fileSystem;
 
   public JMemFileStore(final JMemFileSystem fileSystem) {
@@ -51,8 +50,7 @@ public class JMemFileStore extends FileStore {
 
   @Override
   public String name() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return "";
   }
 
   @Override
@@ -69,7 +67,6 @@ public class JMemFileStore extends FileStore {
 
   @Override
   public String type() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return "jmemfs";
   }
 }

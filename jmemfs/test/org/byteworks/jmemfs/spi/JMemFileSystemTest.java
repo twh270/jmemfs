@@ -3,6 +3,7 @@ package org.byteworks.jmemfs.spi;
 import static org.byteworks.jmemfs.spi.TestCommon.BAD_URI;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -20,7 +21,7 @@ public class JMemFileSystemTest {
 
   @Test
   public void shouldCreatePathFromSegments() {
-    final FileSystem fs = getJMemFS();
+    final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     Path path = fs.getPath("/first", "second", "third");
     assertEquals("/first/second/third", path.toString());
 
@@ -30,43 +31,38 @@ public class JMemFileSystemTest {
 
   @Test
   public void shouldGetFileSystemProviderFromFS() {
-    final FileSystem fs = getJMemFS();
+    final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     assertTrue(fs.provider() instanceof JMemFileSystemProvider);
   }
 
   @Test
   public void shouldGetJMemFileSystemFromURI() {
-    final FileSystem fs = getJMemFS();
+    final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     assertTrue(fs != null);
     assertTrue(fs instanceof JMemFileSystem);
   }
 
   @Test
-  public void shouldGetPath() throws URISyntaxException {
+  public void shouldGetRootPath() {
     final Path path = Paths.get(JMEM_ROOT);
-    assertTrue(path != null);
+    assertEquals("/", path.toString());
+    assertNotNull(path);
   }
 
   @Test
   public void shouldGetSeparator() {
-    assertEquals("/", getJMemFS().getSeparator());
+    assertEquals("/", new JMemFileSystem(new JMemFileSystemProvider()).getSeparator());
   }
 
   @Test(expected = FileSystemNotFoundException.class)
-  public void shouldNotGetPathWithWrongScheme() throws URISyntaxException {
-    final Path path = Paths.get(BAD_URI);
+  public void shouldNotGetPathWithWrongScheme() {
+    Paths.get(BAD_URI);
     fail("Should have thrown exception here");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldThrowIfURIPathNotRoot() throws URISyntaxException {
     FileSystems.getFileSystem(new URI("jmemfs:/not_root"));
-  }
-
-  private FileSystem getJMemFS() {
-    FileSystem fs = null;
-    fs = FileSystems.getFileSystem(JMEM_ROOT);
-    return fs;
   }
 
 }

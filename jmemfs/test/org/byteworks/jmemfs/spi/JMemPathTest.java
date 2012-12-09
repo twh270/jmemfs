@@ -46,7 +46,7 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetNameIndexesAndNames() {
-    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     Path path = new JMemPath(fs, "");
     assertEquals(1, path.getNameCount());
     assertEquals("", path.getName(0).toString());
@@ -66,7 +66,7 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetParent() {
-    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     Path path = Paths.get(JMEM_URI("/o/aa/bbb/defgggg"));
     Path parent = path.getParent();
     assertEquals("/o/aa/bbb", parent.toString());
@@ -78,7 +78,7 @@ public class JMemPathTest {
 
   @Test
   public void shouldNormalizePath() {
-    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     final Path path = new JMemPath(fs, "///way//too////many/slashes/in//this//path/");
     assertEquals("/way/too/many/slashes/in/this/path", path.toString());
   }
@@ -91,7 +91,7 @@ public class JMemPathTest {
 
   @Test
   public void testConvertToString() {
-    final JMemFileSystem fs = (JMemFileSystem) JMemFileSystemProvider.theInstance.getFileSystem(JMEM_ROOT);
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     Path path = Paths.get(JMEM_ROOT);
     assertEquals("/", path.toString());
 

@@ -24,7 +24,7 @@ public class JMemFileSystemProviderTest {
 
   @Test
   public void pathShouldNotBeHidden() throws IOException {
-    final FileSystemProvider p = getProvider();
+    final FileSystemProvider p = new JMemFileSystemProvider();
     assertFalse(p.isHidden(Paths.get(JMEM_ROOT)));
   }
 
@@ -37,7 +37,7 @@ public class JMemFileSystemProviderTest {
 
   @Test
   public void shouldGetFileStore() throws IOException {
-    final FileSystemProvider p = getProvider();
+    final FileSystemProvider p = new JMemFileSystemProvider();
     final FileStore fs = p.getFileStore(Paths.get(JMEM_ROOT));
     assertNotNull(fs);
   }
@@ -53,13 +53,13 @@ public class JMemFileSystemProviderTest {
 
   @Test
   public void testCheckAccess() throws IOException {
-    final JMemFileSystemProvider p = getProvider();
-    p.checkAccess(Paths.get(JMEM_ROOT), null);
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    p.checkAccess(Paths.get(JMEM_ROOT));
   }
 
   @Test
   public void testIsSameFile() throws IOException {
-    final FileSystemProvider p = getProvider();
+    final FileSystemProvider p = new JMemFileSystemProvider();
     Path path1 = Paths.get(JMEM_URI("/some/path"));
     final Path path2 = Paths.get(JMEM_URI("/some/path"));
     assertTrue(p.isSameFile(path1, path2));

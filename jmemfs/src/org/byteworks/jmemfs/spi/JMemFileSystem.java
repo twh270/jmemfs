@@ -113,7 +113,7 @@ public class JMemFileSystem extends FileSystem {
   }
 
   void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) {
-    final Path parent = dir.getParent();
+    throw new UnsupportedOperationException("not implemented");
   }
 
 }
