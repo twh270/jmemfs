@@ -70,7 +70,7 @@ public class JMemPath implements Path {
   @Override
   public Path getParent() {
     final StringBuilder sb = new StringBuilder();
-    if (path.startsWith(SEPARATOR)) {
+    if (isAbsolute()) {
       sb.append(SEPARATOR);
     }
     final int[] indexes = getIndexes();
@@ -89,8 +89,7 @@ public class JMemPath implements Path {
 
   @Override
   public boolean isAbsolute() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return path.startsWith(SEPARATOR);
   }
 
   @Override
@@ -167,7 +166,7 @@ public class JMemPath implements Path {
 
   @Override
   public Path toAbsolutePath() {
-    if (path.startsWith(SEPARATOR))
+    if (isAbsolute())
       return this;
 
     return new JMemPath(fileSystem, fileSystem.defaultDir() + "/" + path);
@@ -208,7 +207,7 @@ public class JMemPath implements Path {
       }
       else {
         int offset = 0;
-        if (path.startsWith(SEPARATOR)) {
+        if (isAbsolute()) {
           offset = 1;
         }
         final String[] chunks = path.length() == 0 ? new String[1] : path.substring(offset).split(SEPARATOR);

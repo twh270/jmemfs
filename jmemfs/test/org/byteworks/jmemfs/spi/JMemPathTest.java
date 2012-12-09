@@ -3,6 +3,8 @@ package org.byteworks.jmemfs.spi;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_URI;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URI;
@@ -16,6 +18,16 @@ import java.util.Map;
 import org.junit.Test;
 
 public class JMemPathTest {
+  @Test
+  public void shouldBeAbsolute() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    Path path = new JMemPath(fs, "/absolute/path");
+    assertTrue(path.isAbsolute());
+
+    path = new JMemPath(fs, "relative/path");
+    assertFalse(path.isAbsolute());
+  }
+
   @Test
   public void shouldCreateFileObject() {
     Path path = Paths.get(JMEM_URI("/some/name"));
