@@ -20,9 +20,9 @@ public class JMemPath implements Path {
   private final JMemFileSystem fileSystem;
   private int[] nameIndexes = null;
 
-  public JMemPath(final JMemFileSystem fileSystem, final String path) {
+  public JMemPath(final JMemFileSystem fileSystem, final String path2) {
     this.fileSystem = fileSystem;
-    this.path = normalize(path);
+    this.path = normalize(path2);
   }
 
   @Override
@@ -167,8 +167,10 @@ public class JMemPath implements Path {
 
   @Override
   public Path toAbsolutePath() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    if (path.startsWith(SEPARATOR))
+      return this;
+
+    return new JMemPath(fileSystem, fileSystem.defaultDir() + "/" + path);
   }
 
   @Override
@@ -178,8 +180,7 @@ public class JMemPath implements Path {
 
   @Override
   public Path toRealPath(final LinkOption... options) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return toAbsolutePath();
   }
 
   @Override

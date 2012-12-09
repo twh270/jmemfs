@@ -10,6 +10,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -30,6 +32,25 @@ public class JMemPathTest {
   }
 
   @Test
+  public void shouldGetAbsolutePath() {
+    JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    Path path = new JMemPath(fs, "/absolute/path");
+    path = path.toAbsolutePath();
+    assertEquals("/absolute/path", path.toString());
+
+    final Map<String, String> env = new HashMap<String, String>();
+    env.put("default.dir", "/root");
+    fs = new JMemFileSystem(new JMemFileSystemProvider(), env);
+    path = new JMemPath(fs, "relative/path");
+    path = path.toAbsolutePath();
+    assertEquals("/root/relative/path", path.toString());
+
+    path = new JMemPath(fs, "/absolute/path");
+    path = path.toAbsolutePath();
+    assertEquals("/absolute/path", path.toString());
+  }
+
+  @Test
   public void shouldGetFileSystemFromPath() {
     final Path path = Paths.get(JMEM_ROOT);
     final FileSystem fs = path.getFileSystem();
@@ -47,12 +68,15 @@ public class JMemPathTest {
   @Test
   public void shouldGetNameIndexesAndNames() {
     final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
-    Path path = new JMemPath(fs, "");
+    Path path = new JMemPath(fs, "/");
+    assertEquals(0, path.getNameCount());
+
+    path = new JMemPath(fs, "");
     assertEquals(1, path.getNameCount());
     assertEquals("", path.getName(0).toString());
 
-    path = new JMemPath(fs, "/");
-    assertEquals(0, path.getNameCount());
+    path = new JMemPath(fs, "relative/path/here");
+    assertEquals("relative", path.getName(0).toString());
 
     path = new JMemPath(fs, "/o/aa/bbb/defgggg");
     assertEquals("o", path.getName(0).toString());
@@ -60,8 +84,6 @@ public class JMemPathTest {
     assertEquals("bbb", path.getName(2).toString());
     assertEquals("defgggg", path.getName(3).toString());
 
-    path = new JMemPath(fs, "relative/path/here");
-    assertEquals("relative", path.getName(0).toString());
   }
 
   @Test

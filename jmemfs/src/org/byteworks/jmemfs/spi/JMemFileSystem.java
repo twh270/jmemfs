@@ -21,6 +21,7 @@ public class JMemFileSystem extends FileSystem {
   private final JMemFileSystemProvider provider;
   private final Map<String, ? > env;
   JMemDirectoryInode root;
+  private String defaultDir;
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider) {
     this.provider = jMemFileSystemProvider;
@@ -31,12 +32,17 @@ public class JMemFileSystem extends FileSystem {
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider, final Map<String, ? > env2) {
     this.provider = jMemFileSystemProvider;
     this.env = env2;
+    this.defaultDir = (String) (env.containsKey("default.dir") ? env.get("default.dir") : "/");
   }
 
   @Override
   public void close() throws IOException {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("not implemented");
+  }
+
+  public String defaultDir() {
+    return defaultDir;
   }
 
   public Map<String, ? > getEnvironment() {

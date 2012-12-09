@@ -14,6 +14,8 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -58,6 +60,15 @@ public class JMemFileSystemTest {
   public void shouldNotGetPathWithWrongScheme() {
     Paths.get(BAD_URI);
     fail("Should have thrown exception here");
+  }
+
+  @Test
+  public void shouldSetDefaultDir() {
+    final Map<String, String> env = new HashMap<String, String>();
+    env.put("default.dir", "/root");
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider(), env);
+    assertEquals("/root", fs.getEnvironment().get("default.dir"));
+    assertEquals("/root", fs.defaultDir());
   }
 
   @Test(expected = IllegalArgumentException.class)
