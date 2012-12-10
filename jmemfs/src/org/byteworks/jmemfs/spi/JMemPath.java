@@ -91,8 +91,7 @@ public class JMemPath implements Path {
 
   @Override
   public Path getRoot() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return new JMemPath(fileSystem, SEPARATOR);
   }
 
   @Override

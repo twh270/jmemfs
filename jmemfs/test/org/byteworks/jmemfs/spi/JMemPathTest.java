@@ -126,6 +126,12 @@ public class JMemPathTest {
   }
 
   @Test
+  public void shouldGetRoot() {
+    final Path path = Paths.get(JMEM_URI("/some/name")).getRoot();
+    assertEquals("/", path.toString());
+  }
+
+  @Test
   public void shouldNormalizePath() {
     final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     final Path path = new JMemPath(fs, "///way//too////many/slashes/in//this//path/");
