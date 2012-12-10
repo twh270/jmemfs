@@ -13,7 +13,9 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class JMemPath implements Path {
   private final String path;
@@ -101,8 +103,12 @@ public class JMemPath implements Path {
 
   @Override
   public Iterator<Path> iterator() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    final String[] parts = getPathElements();
+    final List<Path> partsList = new ArrayList<>();
+    for (final String part : parts) {
+      partsList.add(new JMemPath(fileSystem, part));
+    }
+    return partsList.iterator();
   }
 
   @Override
@@ -240,6 +246,15 @@ public class JMemPath implements Path {
     if (index == nameIndexes.length - 1)
       return path.substring(nameIndexes[nameIndexes.length - 1]);
     return path.substring(nameIndexes[index], nameIndexes[index + 1] - 1);
+  }
+
+  private String[] getPathElements() {
+    final int count = getIndexes().length;
+    final String[] elements = new String[count];
+    for (int i = 0; i < count; i++) {
+      elements[i] = getPathElement(i);
+    }
+    return elements;
   }
 
   private static String normalize(final String input) {

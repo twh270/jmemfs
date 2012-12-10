@@ -13,6 +13,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.junit.Test;
@@ -82,6 +83,33 @@ public class JMemPathTest {
     final Path path = Paths.get(JMEM_ROOT);
     final FileSystem fs = path.getFileSystem();
     assertEquals(FileSystems.getFileSystem(JMEM_ROOT), fs);
+  }
+
+  @Test
+  public void shouldGetIterator() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    Path path = new JMemPath(fs, "relative/path/here");
+    String[] parts = new String[] { "relative", "path", "here" };
+    Iterator<Path> i = path.iterator();
+    for (final String part : parts) {
+      assertEquals(part, i.next().toString());
+    }
+
+    path = new JMemPath(fs, "/absolute/path/name/here");
+    parts = new String[] { "absolute", "path", "name", "here" };
+    i = path.iterator();
+    for (final String part : parts) {
+      assertEquals(part, i.next().toString());
+    }
+
+    path = new JMemPath(fs, "/");
+    i = path.iterator();
+    assertFalse(i.hasNext());
+
+    path = new JMemPath(fs, "");
+    i = path.iterator();
+    assertTrue(i.hasNext());
+    assertEquals("", i.next().toString());
   }
 
   @Test
