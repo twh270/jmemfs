@@ -36,6 +36,13 @@ public class JMemFileSystemProviderTest {
   }
 
   @Test
+  public void shouldCreateDirectory() throws IOException {
+    final FileSystemProvider p = new JMemFileSystemProvider();
+    p.createDirectory(Paths.get(JMEM_URI("/temp")));
+    p.createDirectory(Paths.get(JMEM_URI("/temp/working")));
+  }
+
+  @Test
   public void shouldGetFileStore() throws IOException {
     final FileSystemProvider p = new JMemFileSystemProvider();
     final FileStore fs = p.getFileStore(Paths.get(JMEM_ROOT));

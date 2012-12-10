@@ -45,8 +45,14 @@ public class JMemPath implements Path {
 
   @Override
   public Path getFileName() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    final int[] indexes = getIndexes();
+    if (indexes.length == 0)
+      return null;
+    if (indexes.length == 1) {
+      if (path.length() > 0 && !path.startsWith(SEPARATOR))
+        return this;
+    }
+    return new JMemPath(fileSystem, getPathElement(indexes.length - 1));
   }
 
   @Override
@@ -77,7 +83,9 @@ public class JMemPath implements Path {
     for (int i = 0; i < indexes.length - 1; i++) {
       sb.append(getName(i)).append(SEPARATOR);
     }
-    sb.deleteCharAt(sb.length() - 1);
+    if (sb.length() > 1) {
+      sb.deleteCharAt(sb.length() - 1);
+    }
     return new JMemPath(fileSystem, sb.toString());
   }
 

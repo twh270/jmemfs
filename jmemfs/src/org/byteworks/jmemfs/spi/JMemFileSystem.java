@@ -5,6 +5,7 @@ import static org.byteworks.jmemfs.spi.JMemConstants.SEPARATOR;
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
@@ -16,17 +17,18 @@ import java.util.Map;
 import java.util.Set;
 
 import org.byteworks.jmemfs.spi.impl.JMemDirectoryInode;
+import org.byteworks.jmemfs.spi.impl.JMemInode;
 
 public class JMemFileSystem extends FileSystem {
   private final JMemFileSystemProvider provider;
   private final Map<String, ? > env;
-  JMemDirectoryInode root;
+  private JMemDirectoryInode root;
   private String defaultDir;
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider) {
     this.provider = jMemFileSystemProvider;
     this.env = new HashMap<String, String>();
-    this.root = new JMemDirectoryInode(SEPARATOR);
+    this.root = new JMemDirectoryInode(null, SEPARATOR);
   }
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider, final Map<String, ? > env2) {
@@ -118,8 +120,21 @@ public class JMemFileSystem extends FileSystem {
     throw new UnsupportedOperationException("not implemented");
   }
 
-  void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) {
-    throw new UnsupportedOperationException("not implemented");
+  JMemInode checkParentsExist(final Path child) throws NoSuchFileException {
+    final Path parent = child.toAbsolutePath().getParent();
+    final int count = parent.getNameCount();
+    JMemInode curr = root;
+    for (int i = 0; i < count; i++) {
+      curr = curr.getInodeForName(parent.getName(i).toString());
+      if (curr == null)
+        throw new NoSuchFileException(parent.toString());
+    }
+    return curr;
+  }
+
+  void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) throws IOException {
+    final JMemInode parentNode = checkParentsExist(dir);
+    parentNode.createDirectory(dir.getFileName().toString());
   }
 
 }

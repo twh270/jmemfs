@@ -2,11 +2,13 @@ package org.byteworks.jmemfs.spi;
 
 import static org.byteworks.jmemfs.spi.TestCommon.BAD_URI;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
+import static org.byteworks.jmemfs.spi.TestCommon.JMEM_URI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
@@ -20,6 +22,13 @@ import java.util.Map;
 import org.junit.Test;
 
 public class JMemFileSystemTest {
+
+  @Test
+  public void shouldCreateDirectory() throws IOException {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    fs.createDirectory(Paths.get(JMEM_URI("/temp")), null);
+    fs.createDirectory(Paths.get(JMEM_URI("/temp/working")), null);
+  }
 
   @Test
   public void shouldCreatePathFromSegments() {

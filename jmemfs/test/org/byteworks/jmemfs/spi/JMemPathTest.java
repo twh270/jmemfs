@@ -63,6 +63,21 @@ public class JMemPathTest {
   }
 
   @Test
+  public void shouldGetFileName() {
+    Path path = Paths.get(JMEM_URI("/some/name"));
+    assertEquals("name", path.getFileName().toString());
+
+    path = Paths.get(JMEM_URI("/root"));
+    assertEquals("root", path.getFileName().toString());
+
+    path = Paths.get(JMEM_URI("/"));
+    assertEquals(null, path.getFileName());
+
+    path = new JMemPath(new JMemFileSystem(new JMemFileSystemProvider()), "");
+    assertEquals("", path.getFileName().toString());
+  }
+
+  @Test
   public void shouldGetFileSystemFromPath() {
     final Path path = Paths.get(JMEM_ROOT);
     final FileSystem fs = path.getFileSystem();
