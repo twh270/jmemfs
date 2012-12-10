@@ -11,6 +11,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
@@ -38,6 +39,18 @@ public class JMemFileSystemTest {
 
     path = fs.getPath("/some//", "/weird", "segments", "/here");
     assertEquals("/some/weird/segments/here", path.toString());
+  }
+
+  @Test
+  public void shouldGetFileStores() {
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = new JMemFileSystem(p);
+    int count = 0;
+    for (final FileStore f : fs.getFileStores()) {
+      count++;
+      assertEquals("jmemfs", f.type());
+    }
+    assertEquals(1, count);
   }
 
   @Test

@@ -12,6 +12,7 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -53,8 +54,7 @@ public class JMemFileSystem extends FileSystem {
 
   @Override
   public Iterable<FileStore> getFileStores() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return Arrays.asList((FileStore) provider.getTheFileStore());
   }
 
   @Override
