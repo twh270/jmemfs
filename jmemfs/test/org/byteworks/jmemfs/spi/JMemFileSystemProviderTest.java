@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.byteworks.jmemfs.spi.impl.JMemFileAttributes;
 import org.junit.Test;
 
 public class JMemFileSystemProviderTest {
@@ -40,6 +41,13 @@ public class JMemFileSystemProviderTest {
     final FileSystemProvider p = new JMemFileSystemProvider();
     p.createDirectory(Paths.get(JMEM_URI("/temp")));
     p.createDirectory(Paths.get(JMEM_URI("/temp/working")));
+  }
+
+  @Test
+  public void shouldGetAttributesForRoot() throws IOException {
+    final FileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileAttributes attributes = p.readAttributes(Paths.get(JMEM_ROOT), JMemFileAttributes.class);
+    assertNotNull(attributes);
   }
 
   @Test

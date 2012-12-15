@@ -11,11 +11,13 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
@@ -27,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.byteworks.jmemfs.spi.impl.JMemDirectoryInode;
+import org.byteworks.jmemfs.spi.impl.JMemFileAttributes;
 import org.byteworks.jmemfs.spi.impl.JMemInode;
 
 public class JMemFileSystem extends FileSystem {
@@ -174,6 +177,16 @@ public class JMemFileSystem extends FileSystem {
 
   void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) throws IOException {
     assertParentInode(dir).createDirectory(dir.getFileName().toString());
+  }
+
+  <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type, final LinkOption... options) throws IOException {
+    if (!(type == JMemFileAttributes.class) && !(type == BasicFileAttributes.class))
+      throw new UnsupportedOperationException("Unsupported attribute type " + type.getName());
+    final JMemInode parent = assertParentInode(path);
+    final JMemInode inode = parent.getInodeFor(path.getFileName().toString());
+    if (inode == null)
+      throw new NoSuchFileException("No such file: " + path.toString());
+    return (A) inode.getAttributes();
   }
 
   private static final <T> String createString(final Collection<T> c) {

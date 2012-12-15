@@ -121,8 +121,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type, final LinkOption... options) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return theFileSystem.readAttributes(path, type, options);
   }
 
   @Override

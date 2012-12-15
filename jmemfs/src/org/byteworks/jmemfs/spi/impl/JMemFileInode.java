@@ -9,12 +9,18 @@ public class JMemFileInode extends JMemInode {
   private ByteBuffer storage;
 
   public JMemFileInode(final JMemInode parent, final String name) {
-    super(parent, name);
+    super(parent, name, JMemFileAttributes.FileType.FILE);
+    this.storage = ByteBuffer.allocate(0);
+  }
+
+  public JMemFileInode(final JMemInode parent, final String name, final long now) {
+    super(parent, name, JMemFileAttributes.FileType.FILE, now);
     this.storage = ByteBuffer.allocate(0);
   }
 
   @Override
   public SeekableByteChannel createChannel() {
+    updateATime();
     return new JMemSeekableByteChannel(this);
   }
 
@@ -39,12 +45,15 @@ public class JMemFileInode extends JMemInode {
   }
 
   public int readBytes(final int position, final ByteBuffer dst) {
-    final int bytesToRead = storage.capacity() - position;
+    updateATime();
+    final long size = getAttributes().size();
+    final long bytesToRead = size - position;
     storage.position(position);
+    storage.limit((int) size);
     if (bytesToRead > 0) {
       dst.put(storage);
     }
-    return bytesToRead;
+    return (int) bytesToRead;
   }
 
   public int writeBytes(final int position, final ByteBuffer src) {
@@ -52,13 +61,22 @@ public class JMemFileInode extends JMemInode {
     if (position + bytesToWrite > storage.capacity()) {
       allocateStorage(position + bytesToWrite);
     }
+    storage.limit(storage.capacity());
     storage.position(position);
     storage.put(src);
+    final int newPosition = storage.position();
+    final long size = getAttributes().size();
+    if (size < newPosition) {
+      updateSize(newPosition);
+    }
+    updateATime();
+    updateMTime();
     return bytesToWrite;
   }
 
-  private void allocateStorage(final int capacity) {
-    final ByteBuffer newStorage = ByteBuffer.allocate(capacity);
+  private void allocateStorage(final int requiredCapacity) {
+    final int allocatedCapacity = requiredCapacity + (storage.capacity() / 10);
+    final ByteBuffer newStorage = ByteBuffer.allocate(allocatedCapacity);
     newStorage.put(storage);
     storage = newStorage;
   }
