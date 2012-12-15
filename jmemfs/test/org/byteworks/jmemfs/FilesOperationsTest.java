@@ -1,6 +1,7 @@
 package org.byteworks.jmemfs;
 
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_URI;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,6 +33,14 @@ public class FilesOperationsTest {
   public void shouldCreateFile() throws IOException {
     final Path path = Paths.get(JMEM_URI("/input.txt"));
     Files.createFile(path);
+  }
+
+  @Test
+  public void shouldReadFile() throws IOException {
+    final byte[] outputBytes = TEST_STRING.getBytes();
+    Files.write(Paths.get(JMEM_URI("/output.txt")), outputBytes);
+    final byte[] inputBytes = Files.readAllBytes(Paths.get(JMEM_URI("/output.txt")));
+    assertArrayEquals(outputBytes, inputBytes);
   }
 
   @Test
