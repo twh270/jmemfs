@@ -248,7 +248,7 @@ public class JMemPath implements Path {
     return path.substring(nameIndexes[index], nameIndexes[index + 1] - 1);
   }
 
-  private String[] getPathElements() {
+  String[] getPathElements() {
     final int count = getIndexes().length;
     final String[] elements = new String[count];
     for (int i = 0; i < count; i++) {
@@ -280,5 +280,9 @@ public class JMemPath implements Path {
       prevChar = c;
     }
     return sb.toString();
+  }
+
+  static JMemPath asJMemPath(final Path path) {
+    return (JMemPath) path;
   }
 }

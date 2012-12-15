@@ -105,8 +105,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public SeekableByteChannel newByteChannel(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >... attrs) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return theFileSystem.createChannel(path, options, attrs);
   }
 
   @Override
@@ -139,7 +138,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   }
 
-  protected void checkUri(final URI path) {
+  void checkUri(final URI path) {
     if (!(SCHEME.equals(path.getScheme())))
       throw new IllegalArgumentException("URI for this filesystem must be " + SCHEME);
   }

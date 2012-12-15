@@ -1,9 +1,9 @@
 package org.byteworks.jmemfs.spi;
 
+import static junit.framework.Assert.assertEquals;
 import static org.byteworks.jmemfs.spi.TestCommon.BAD_URI;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_ROOT;
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_URI;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -64,6 +64,17 @@ public class JMemFileSystemTest {
     final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     assertTrue(fs != null);
     assertTrue(fs instanceof JMemFileSystem);
+  }
+
+  @Test
+  public void shouldGetRootDirectories() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    int count = 0;
+    for (final Path p : fs.getRootDirectories()) {
+      count++;
+      assertEquals("/", p.toString());
+    }
+    assertEquals(1, count);
   }
 
   @Test

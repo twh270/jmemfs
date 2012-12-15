@@ -1,6 +1,7 @@
 package org.byteworks.jmemfs.spi.impl;
 
 import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +14,11 @@ public class JMemDirectoryInode extends JMemInode {
   }
 
   @Override
+  public SeekableByteChannel createChannel() {
+    throw new IllegalStateException("A directory inode cannot create a channel");
+  }
+
+  @Override
   public JMemInode createDirectory(final String name) throws IOException {
     if (entries.containsKey(name))
       throw new FileAlreadyExistsException(name);
@@ -22,12 +28,34 @@ public class JMemDirectoryInode extends JMemInode {
   }
 
   @Override
-  public JMemInode getInodeForName(final String name) {
+  public JMemInode createFile(final String name) throws FileAlreadyExistsException {
+    synchronized (entries) {
+      if (getInodeFor(name) != null)
+        throw new FileAlreadyExistsException(name);
+      final JMemInode fileInode = new JMemFileInode(this, name);
+      entries.put(name, fileInode);
+      return fileInode;
+    }
+  }
+
+  @Override
+  public JMemInode getInodeFor(final String name) {
     if (".".equals(name))
       return this;
     else if ("..".equals(name))
       return getParent();
     else
       return entries.get(name);
+  }
+
+  @Override
+  public JMemInode getInodeFor(final String[] pathElements) {
+    JMemInode curr = this;
+    for (final String element : pathElements) {
+      curr = curr.getInodeFor(element);
+      if (curr == null)
+        return null;
+    }
+    return curr;
   }
 }

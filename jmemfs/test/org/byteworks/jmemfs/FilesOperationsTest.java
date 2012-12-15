@@ -11,6 +11,8 @@ import java.nio.file.Paths;
 import org.junit.Test;
 
 public class FilesOperationsTest {
+  private static final String TEST_STRING = "This is a string";
+
   @Test
   public void shouldCopyFromPathToOutputStream() throws IOException {
     final Path path = Paths.get(JMEM_URI("/input.txt"));
@@ -20,7 +22,9 @@ public class FilesOperationsTest {
 
   @Test
   public void shouldCreateDirectory() throws IOException {
-    final Path path = Paths.get(JMEM_URI("/temp"));
+    Path path = Paths.get(JMEM_URI("/temp"));
+    Files.createDirectory(path);
+    path = Paths.get(JMEM_URI("/temp/working"));
     Files.createDirectory(path);
   }
 
@@ -28,5 +32,11 @@ public class FilesOperationsTest {
   public void shouldCreateFile() throws IOException {
     final Path path = Paths.get(JMEM_URI("/input.txt"));
     Files.createFile(path);
+  }
+
+  @Test
+  public void shouldWriteFile() throws IOException {
+    final byte[] outputBytes = TEST_STRING.getBytes();
+    Files.write(Paths.get(JMEM_URI("/output.txt")), outputBytes);
   }
 }
