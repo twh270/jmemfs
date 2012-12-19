@@ -26,6 +26,14 @@ public class JMemFileAttributes implements BasicFileAttributes {
   }
 
   @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof JMemFileAttributes))
+      return false;
+    final JMemFileAttributes o = (JMemFileAttributes) obj;
+    return (modified.equals(o.modified) && accessed.equals(o.accessed) && created.equals(o.created) && size == o.size && type == o.type);
+  }
+
+  @Override
   public Object fileKey() {
     // TODO Auto-generated method stub
     return null;

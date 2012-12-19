@@ -46,6 +46,14 @@ public class JMemPath implements Path {
   }
 
   @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof JMemPath))
+      return false;
+    final JMemPath o = (JMemPath) obj;
+    return fileSystem == o.fileSystem && path.equals(o.path);
+  }
+
+  @Override
   public Path getFileName() {
     final int[] indexes = getIndexes();
     if (indexes.length == 0)
@@ -285,4 +293,5 @@ public class JMemPath implements Path {
   static JMemPath asJMemPath(final Path path) {
     return (JMemPath) path;
   }
+
 }

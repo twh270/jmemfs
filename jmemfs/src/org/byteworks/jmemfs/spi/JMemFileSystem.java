@@ -41,13 +41,13 @@ public class JMemFileSystem extends FileSystem {
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider) {
     this.provider = jMemFileSystemProvider;
     this.env = new HashMap<String, String>();
-    this.root = new JMemDirectoryInode(null, SEPARATOR);
+    initialize();
   }
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider, final Map<String, ? > env2) {
     this.provider = jMemFileSystemProvider;
     this.env = env2;
-    this.defaultDir = (String) (env.containsKey("default.dir") ? env.get("default.dir") : "/");
+    initialize();
   }
 
   @Override
@@ -131,14 +131,6 @@ public class JMemFileSystem extends FileSystem {
     throw new UnsupportedOperationException("not implemented");
   }
 
-  private JMemInode assertParentInode(final Path path) throws NoSuchFileException {
-    final JMemPath parent = JMemPath.asJMemPath(path.toAbsolutePath().getParent());
-    final JMemInode parentNode = root.getInodeFor(parent);
-    if (parentNode == null)
-      throw new NoSuchFileException(parent.toString());
-    return parentNode;
-  }
-
   private SeekableByteChannel createFile(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws NoSuchFileException,
       FileAlreadyExistsException {
     final JMemInode parent = assertParentInode(path);
@@ -159,12 +151,25 @@ public class JMemFileSystem extends FileSystem {
     return fileInode.createChannel();
   }
 
+  private void initialize() {
+    this.root = new JMemDirectoryInode(null, SEPARATOR);
+    this.defaultDir = (String) (env.containsKey("default.dir") ? env.get("default.dir") : "/");
+  }
+
   private SeekableByteChannel openFile(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws NoSuchFileException {
     final JMemInode parent = assertParentInode(path);
     final JMemInode fileInode = parent.getInodeFor(path.getFileName());
     if (fileInode == null)
       throw new NoSuchFileException("File does not exist: " + path.toString());
     return fileInode.createChannel();
+  }
+
+  JMemInode assertParentInode(final Path path) throws NoSuchFileException {
+    final JMemPath parent = JMemPath.asJMemPath(path.toAbsolutePath().getParent());
+    final JMemInode parentNode = root.getInodeFor(parent);
+    if (parentNode == null)
+      throw new NoSuchFileException(parent.toString());
+    return parentNode;
   }
 
   SeekableByteChannel createChannel(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws NoSuchFileException,
@@ -194,6 +199,10 @@ public class JMemFileSystem extends FileSystem {
     if (inode == null)
       throw new NoSuchFileException("No such file: " + path.toString());
     return (A) inode.getAttributes();
+  }
+
+  JMemInode root() {
+    return root;
   }
 
   private static final <T> String createString(final Collection<T> c) {

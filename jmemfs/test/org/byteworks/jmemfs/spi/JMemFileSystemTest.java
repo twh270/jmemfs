@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.byteworks.jmemfs.spi.impl.JMemInode;
 import org.junit.Test;
 
 public class JMemFileSystemTest {
@@ -39,6 +40,21 @@ public class JMemFileSystemTest {
 
     path = fs.getPath("/some//", "/weird", "segments", "/here");
     assertEquals("/some/weird/segments/here", path.toString());
+  }
+
+  @Test
+  public void shouldGetDotAndDotDot() throws IOException {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    fs.createDirectory(new JMemPath(fs, "dir1"), null);
+    final JMemPath dir2Path = new JMemPath(fs, "/dir1/dir2");
+    fs.createDirectory(dir2Path, null);
+    final JMemPath pathToGrandChild = (JMemPath) Paths.get(TestCommon.JMEM_URI("/dir1/dir2"));
+    final JMemInode dir2Inode = fs.root().getInodeFor(dir2Path);
+    JMemInode test = dir2Inode.getInodeFor(new JMemPath(fs, "."));
+    assertEquals(dir2Inode, test);
+    final JMemInode dir1Inode = dir2Inode.getParent();
+    test = dir2Inode.getInodeFor(new JMemPath(fs, ".."));
+    assertEquals(dir1Inode, test);
   }
 
   @Test

@@ -28,6 +28,14 @@ public abstract class JMemInode {
 
   public abstract JMemInode createFile(Path name) throws FileAlreadyExistsException;
 
+  @Override
+  public boolean equals(final Object other) {
+    if (!(other instanceof JMemInode))
+      return false;
+    final JMemInode o = (JMemInode) other;
+    return (name.equals(o.name) && attributes.equals(o.attributes) && (parent == null && o.parent == null || parent.equals(o.parent)));
+  }
+
   public JMemFileAttributes getAttributes() {
     return attributes;
   }
@@ -62,5 +70,4 @@ public abstract class JMemInode {
   void updateSize(final long newSize) {
     getAttributes().updateSize(newSize);
   }
-
 }
