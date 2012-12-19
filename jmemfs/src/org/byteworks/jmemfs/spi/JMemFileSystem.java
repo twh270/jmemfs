@@ -133,7 +133,7 @@ public class JMemFileSystem extends FileSystem {
 
   private JMemInode assertParentInode(final Path path) throws NoSuchFileException {
     final JMemPath parent = JMemPath.asJMemPath(path.toAbsolutePath().getParent());
-    final JMemInode parentNode = root.getInodeFor(parent.getPathElements());
+    final JMemInode parentNode = root.getInodeFor(parent);
     if (parentNode == null)
       throw new NoSuchFileException(parent.toString());
     return parentNode;
@@ -143,16 +143,17 @@ public class JMemFileSystem extends FileSystem {
       FileAlreadyExistsException {
     final JMemInode parent = assertParentInode(path);
     JMemInode fileInode = null;
-    final String name = path.getFileName().toString();
+    final Path fileName = path.getFileName();
+    final String name = fileName.toString();
     if (options.contains(CREATE_NEW)) {
-      fileInode = parent.createFile(name);
+      fileInode = parent.createFile(fileName);
     }
     else if (options.contains(CREATE)) {
       try {
-        fileInode = parent.createFile(name);
+        fileInode = parent.createFile(fileName);
       }
       catch (final FileAlreadyExistsException ex) {
-        fileInode = parent.getInodeFor(name);
+        fileInode = parent.getInodeFor(fileName);
       }
     }
     return fileInode.createChannel();
@@ -160,7 +161,7 @@ public class JMemFileSystem extends FileSystem {
 
   private SeekableByteChannel openFile(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws NoSuchFileException {
     final JMemInode parent = assertParentInode(path);
-    final JMemInode fileInode = parent.getInodeFor(path.getFileName().toString());
+    final JMemInode fileInode = parent.getInodeFor(path.getFileName());
     if (fileInode == null)
       throw new NoSuchFileException("File does not exist: " + path.toString());
     return fileInode.createChannel();
@@ -176,14 +177,20 @@ public class JMemFileSystem extends FileSystem {
   }
 
   void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) throws IOException {
-    assertParentInode(dir).createDirectory(dir.getFileName().toString());
+    assertParentInode(dir).createDirectory(dir.getFileName());
   }
 
   <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type, final LinkOption... options) throws IOException {
     if (!(type == JMemFileAttributes.class) && !(type == BasicFileAttributes.class))
       throw new UnsupportedOperationException("Unsupported attribute type " + type.getName());
     final JMemInode parent = assertParentInode(path);
-    final JMemInode inode = parent.getInodeFor(path.getFileName().toString());
+    JMemInode inode;
+    if (path.getFileName() == null) {
+      inode = root;
+    }
+    else {
+      inode = parent.getInodeFor(path.getFileName());
+    }
     if (inode == null)
       throw new NoSuchFileException("No such file: " + path.toString());
     return (A) inode.getAttributes();

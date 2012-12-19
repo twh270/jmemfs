@@ -2,6 +2,7 @@ package org.byteworks.jmemfs;
 
 import static org.byteworks.jmemfs.spi.TestCommon.JMEM_URI;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,9 +17,13 @@ public class FilesOperationsTest {
 
   @Test
   public void shouldCopyFromPathToOutputStream() throws IOException {
-    final Path path = Paths.get(JMEM_URI("/input.txt"));
+    final byte[] outputBytes = TEST_STRING.getBytes();
+    final Path path = Paths.get(JMEM_URI("/output.txt"));
+    Files.write(path, outputBytes);
     final ByteArrayOutputStream bos = new ByteArrayOutputStream();
     Files.copy(path, bos);
+    bos.close();
+    assertEquals(outputBytes.length, bos.toByteArray().length);
   }
 
   @Test
@@ -33,6 +38,11 @@ public class FilesOperationsTest {
   public void shouldCreateFile() throws IOException {
     final Path path = Paths.get(JMEM_URI("/input.txt"));
     Files.createFile(path);
+  }
+
+  @Test(expected = IOException.class)
+  public void shouldNotReadNonexistentFile() throws IOException {
+    final byte[] inputBytes = Files.readAllBytes(Paths.get(JMEM_URI("/output.txt")));
   }
 
   @Test

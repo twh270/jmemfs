@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Path;
 
 public class JMemFileInode extends JMemInode {
   private ByteBuffer storage;
@@ -25,22 +26,17 @@ public class JMemFileInode extends JMemInode {
   }
 
   @Override
-  public JMemInode createDirectory(final String name) throws IOException {
+  public JMemInode createDirectory(final Path name) throws IOException {
     throw new IllegalStateException("A file inode cannot create a directory");
   }
 
   @Override
-  public JMemInode createFile(final String name) throws FileAlreadyExistsException {
+  public JMemInode createFile(final Path name) throws FileAlreadyExistsException {
     throw new IllegalStateException("A file inode cannot create a file");
   }
 
   @Override
-  public JMemInode getInodeFor(final String part) {
-    throw new IllegalStateException("A file inode cannot get a child inode");
-  }
-
-  @Override
-  public JMemInode getInodeFor(final String[] pathElements) throws IOException {
+  public JMemInode getInodeFor(final Path path) {
     throw new IllegalStateException("A file inode cannot get a child inode");
   }
 

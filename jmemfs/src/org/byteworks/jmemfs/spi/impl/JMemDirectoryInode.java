@@ -3,6 +3,7 @@ package org.byteworks.jmemfs.spi.impl;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,30 +24,40 @@ public class JMemDirectoryInode extends JMemInode {
   }
 
   @Override
-  public JMemInode createDirectory(final String name) throws IOException {
+  public JMemInode createDirectory(final Path name) throws IOException {
     updateATime();
-    if (entries.containsKey(name))
-      throw new FileAlreadyExistsException(name);
-    final JMemInode node = new JMemDirectoryInode(this, name);
+    if (entries.containsKey(name.getFileName().toString()))
+      throw new FileAlreadyExistsException(name.toString());
+    final JMemInode node = new JMemDirectoryInode(this, name.getFileName().toString());
     updateMTime();
-    entries.put(name, node);
+    entries.put(name.getFileName().toString(), node);
     return node;
   }
 
   @Override
-  public JMemInode createFile(final String name) throws FileAlreadyExistsException {
+  public JMemInode createFile(final Path name) throws FileAlreadyExistsException {
     updateATime();
     synchronized (entries) {
-      if (getInodeFor(name) != null)
-        throw new FileAlreadyExistsException(name);
-      final JMemInode fileInode = new JMemFileInode(this, name);
-      entries.put(name, fileInode);
+      if (getInodeFor(name.getFileName()) != null)
+        throw new FileAlreadyExistsException(name.toString());
+      final JMemInode fileInode = new JMemFileInode(this, name.getFileName().toString());
+      entries.put(name.getFileName().toString(), fileInode);
       updateMTime();
       return fileInode;
     }
   }
 
   @Override
+  public JMemInode getInodeFor(final Path path) {
+    JMemInode curr = this;
+    if (path.getNameCount() == 1)
+      return getInodeFor(path.getFileName().toString());
+    for (int i = 0; i < path.getNameCount(); i++) {
+      curr = curr.getInodeFor(path.getName(i));
+    }
+    return curr;
+  }
+
   public JMemInode getInodeFor(final String name) {
     updateATime();
     if (".".equals(name))
@@ -57,14 +68,4 @@ public class JMemDirectoryInode extends JMemInode {
       return entries.get(name);
   }
 
-  @Override
-  public JMemInode getInodeFor(final String[] pathElements) {
-    JMemInode curr = this;
-    for (final String element : pathElements) {
-      curr = curr.getInodeFor(element);
-      if (curr == null)
-        return null;
-    }
-    return curr;
-  }
 }

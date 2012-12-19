@@ -3,6 +3,7 @@ package org.byteworks.jmemfs.spi.impl;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Path;
 
 public abstract class JMemInode {
   private final String name;
@@ -23,17 +24,15 @@ public abstract class JMemInode {
 
   public abstract SeekableByteChannel createChannel();
 
-  public abstract JMemInode createDirectory(String name) throws IOException;
+  public abstract JMemInode createDirectory(Path name) throws IOException;
 
-  public abstract JMemInode createFile(String name) throws FileAlreadyExistsException;
+  public abstract JMemInode createFile(Path name) throws FileAlreadyExistsException;
 
   public JMemFileAttributes getAttributes() {
     return attributes;
   }
 
-  public abstract JMemInode getInodeFor(final String part);
-
-  public abstract JMemInode getInodeFor(final String[] pathElements) throws IOException;
+  public abstract JMemInode getInodeFor(final Path path);
 
   public String getName() {
     updateATime();
@@ -63,4 +62,5 @@ public abstract class JMemInode {
   void updateSize(final long newSize) {
     getAttributes().updateSize(newSize);
   }
+
 }

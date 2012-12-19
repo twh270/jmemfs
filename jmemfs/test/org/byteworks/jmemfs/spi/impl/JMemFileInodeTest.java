@@ -8,6 +8,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
 
+import org.byteworks.jmemfs.spi.JMemFileSystem;
+import org.byteworks.jmemfs.spi.JMemFileSystemProvider;
+import org.byteworks.jmemfs.spi.JMemPath;
 import org.junit.Test;
 
 public class JMemFileInodeTest {
@@ -23,13 +26,15 @@ public class JMemFileInodeTest {
   @Test(expected = IllegalStateException.class)
   public void shouldNotAllowCreateDirectory() throws IOException {
     final JMemFileInode inode = new JMemFileInode(null, "input.txt");
-    inode.createDirectory("illegal");
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    inode.createDirectory(new JMemPath(fs, "illegal"));
   }
 
   @Test(expected = IllegalStateException.class)
   public void shouldNotAllowCreateFile() throws FileAlreadyExistsException {
     final JMemFileInode inode = new JMemFileInode(null, "input.txt");
-    inode.createFile("illegal");
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    inode.createFile(new JMemPath(fs, "illegal"));
   }
 
   @Test
