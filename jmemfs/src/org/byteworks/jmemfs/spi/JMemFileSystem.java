@@ -1,8 +1,10 @@
 package org.byteworks.jmemfs.spi;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static org.byteworks.jmemfs.spi.JMemConstants.SEPARATOR;
 
@@ -136,7 +138,6 @@ public class JMemFileSystem extends FileSystem {
     final JMemInode parent = assertParentInode(path);
     JMemInode fileInode = null;
     final Path fileName = path.getFileName();
-    final String name = fileName.toString();
     if (options.contains(CREATE_NEW)) {
       fileInode = parent.createFile(fileName);
     }
@@ -156,14 +157,6 @@ public class JMemFileSystem extends FileSystem {
     this.defaultDir = (String) (env.containsKey("default.dir") ? env.get("default.dir") : "/");
   }
 
-  private SeekableByteChannel openFile(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws NoSuchFileException {
-    final JMemInode parent = assertParentInode(path);
-    final JMemInode fileInode = parent.getInodeFor(path.getFileName());
-    if (fileInode == null)
-      throw new NoSuchFileException("File does not exist: " + path.toString());
-    return fileInode.createChannel();
-  }
-
   JMemInode assertParentInode(final Path path) throws NoSuchFileException {
     final JMemPath parent = JMemPath.asJMemPath(path.toAbsolutePath().getParent());
     final JMemInode parentNode = root.getInodeFor(parent);
@@ -172,17 +165,32 @@ public class JMemFileSystem extends FileSystem {
     return parentNode;
   }
 
-  SeekableByteChannel createChannel(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws NoSuchFileException,
-      FileAlreadyExistsException {
+  SeekableByteChannel createChannel(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws IOException {
     if (options.contains(CREATE) || options.contains(CREATE_NEW))
       return createFile(path, options, attrs);
-    else if (options.contains(READ) || options.contains(WRITE) || options.isEmpty())
+    else if (options.contains(READ) || options.contains(WRITE) || options.contains(APPEND) || options.contains(TRUNCATE_EXISTING)
+        || options.isEmpty())
       return openFile(path, options, attrs);
     throw new IllegalArgumentException("Cannot create a byte channel for the specified open options " + createString(options));
   }
 
   void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) throws IOException {
     assertParentInode(dir).createDirectory(dir.getFileName());
+  }
+
+  SeekableByteChannel openFile(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws IOException {
+    final JMemInode parent = assertParentInode(path);
+    final JMemInode fileInode = parent.getInodeFor(path.getFileName());
+    if (fileInode == null)
+      throw new NoSuchFileException("File does not exist: " + path.toString());
+    final SeekableByteChannel channel = fileInode.createChannel();
+    if (options.contains(TRUNCATE_EXISTING)) {
+      channel.truncate(0);
+    }
+    if (options.contains(APPEND)) {
+      channel.position(channel.size());
+    }
+    return channel;
   }
 
   <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type, final LinkOption... options) throws IOException {

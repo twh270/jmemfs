@@ -73,7 +73,10 @@ public class JMemFileInode extends JMemInode {
   private void allocateStorage(final int requiredCapacity) {
     final int allocatedCapacity = requiredCapacity + (storage.capacity() / 10);
     final ByteBuffer newStorage = ByteBuffer.allocate(allocatedCapacity);
+    final int pos = storage.position();
+    storage.position(0);
     newStorage.put(storage);
     storage = newStorage;
+    storage.position(pos);
   }
 }
