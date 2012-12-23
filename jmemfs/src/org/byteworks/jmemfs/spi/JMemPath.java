@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.ProviderMismatchException;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
@@ -59,7 +60,7 @@ public class JMemPath implements Path {
     if (indexes.length == 0)
       return null;
     if (indexes.length == 1) {
-      if (path.length() > 0 && !path.startsWith(SEPARATOR))
+      if (!isEmpty() && !path.startsWith(SEPARATOR))
         return this;
     }
     return new JMemPath(fileSystem, getPathElement(indexes.length - 1));
@@ -138,21 +139,63 @@ public class JMemPath implements Path {
   }
 
   @Override
-  public Path relativize(final Path other) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+  public Path relativize(final Path obj) {
+    // return other path if this one is empty
+    if (isEmpty())
+      return obj;
+
+    final JMemPath other = JMemPath.asJMemPath(obj);
+    if (other.equals(this))
+      return new JMemPath(fileSystem, "");
+
+    if (this.isAbsolute() != other.isAbsolute())
+      throw new IllegalArgumentException("Cannot relativize different path types -- both or neither must be absolute");
+
+    final int thisCount = this.getNameCount();
+    final int otherCount = other.getNameCount();
+    final int smallest = (thisCount < otherCount) ? thisCount : otherCount;
+
+    // get the name index where paths do not match
+    int mismatchIndex = 0;
+    while (mismatchIndex < smallest && this.getName(mismatchIndex).equals(other.getName(mismatchIndex))) {
+      mismatchIndex++;
+    }
+
+    // number of "../" names we will need is the number of
+    // name elements in this path remaining after we've found
+    // the element where the paths differ
+    int dotdots = thisCount - mismatchIndex;
+    final StringBuilder result = new StringBuilder();
+    String otherRemainder = "";
+    if (mismatchIndex < otherCount) {
+      otherRemainder = other.subpath(mismatchIndex, otherCount).toString();
+    }
+    // result is a  "../" for each remaining name in base
+    // followed by the remaining names in other. 
+    while (dotdots > 0) {
+      result.append("../");
+      dotdots--;
+    }
+    result.append(otherRemainder);
+    return new JMemPath(fileSystem, new String(result));
   }
 
   @Override
-  public Path resolve(final Path other) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+  public Path resolve(final Path obj) {
+    final JMemPath other = asJMemPath(obj);
+    // If other is an absolute path return other. 
+    if (other.isAbsolute())
+      return other;
+    // If other is an empty path then return this path.
+    if (other.isEmpty())
+      return this;
+    // Treat other as a sub-path of this path
+    return new JMemPath(fileSystem, this.path + SEPARATOR + other.path);
   }
 
   @Override
   public Path resolve(final String other) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    return resolve(new JMemPath(fileSystem, other));
   }
 
   @Override
@@ -181,8 +224,20 @@ public class JMemPath implements Path {
 
   @Override
   public Path subpath(final int beginIndex, final int endIndex) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    final StringBuilder sb = new StringBuilder();
+    final int count = getNameCount();
+    if (beginIndex >= count)
+      throw new IllegalArgumentException("Start index was too large");
+    if (endIndex > count)
+      throw new IllegalArgumentException("End index was too large");
+    if (beginIndex < 0)
+      throw new IllegalArgumentException("Start index was less than zero");
+    if (beginIndex >= endIndex)
+      throw new IllegalArgumentException("Begin index must be less than end");
+    for (int i = beginIndex; i < endIndex; i++) {
+      sb.append(getName(i)).append(SEPARATOR);
+    }
+    return new JMemPath(fileSystem, sb.toString());
   }
 
   @Override
@@ -190,7 +245,7 @@ public class JMemPath implements Path {
     if (isAbsolute())
       return this;
 
-    return new JMemPath(fileSystem, fileSystem.defaultDir() + "/" + path);
+    return new JMemPath(fileSystem, fileSystem.defaultDir() + SEPARATOR + path);
   }
 
   @Override
@@ -220,7 +275,7 @@ public class JMemPath implements Path {
 
   private synchronized void buildIndexes() {
     if (nameIndexes == null) {
-      if (path.length() == 0) {
+      if (isEmpty()) {
         nameIndexes = new int[] { 0 };
       }
       else if (SEPARATOR.equals(path)) {
@@ -231,7 +286,7 @@ public class JMemPath implements Path {
         if (isAbsolute()) {
           offset = 1;
         }
-        final String[] chunks = path.length() == 0 ? new String[1] : path.substring(offset).split(SEPARATOR);
+        final String[] chunks = isEmpty() ? new String[1] : path.substring(offset).split(SEPARATOR);
         final int[] tempNameIndexes = new int[chunks.length];
         int position = 0;
         for (int i = 0; i < chunks.length; i++) {
@@ -254,6 +309,10 @@ public class JMemPath implements Path {
     if (index == nameIndexes.length - 1)
       return path.substring(nameIndexes[nameIndexes.length - 1]);
     return path.substring(nameIndexes[index], nameIndexes[index + 1] - 1);
+  }
+
+  private boolean isEmpty() {
+    return path.length() == 0;
   }
 
   String[] getPathElements() {
@@ -283,7 +342,7 @@ public class JMemPath implements Path {
         continue;
       }
       if (c == '\u0000')
-        throw new IllegalArgumentException("Nul character not allowed");
+        throw new IllegalArgumentException("NUL character not allowed in path");
       sb.append(c);
       prevChar = c;
     }
@@ -291,6 +350,9 @@ public class JMemPath implements Path {
   }
 
   static JMemPath asJMemPath(final Path path) {
+    if (!(path instanceof JMemPath))
+      throw new ProviderMismatchException("Path provider mismatch: expected jmemfs path, was "
+          + path.getFileSystem().provider().getScheme());
     return (JMemPath) path;
   }
 

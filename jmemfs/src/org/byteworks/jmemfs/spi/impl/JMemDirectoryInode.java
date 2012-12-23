@@ -52,7 +52,7 @@ public class JMemDirectoryInode extends JMemInode {
     JMemInode curr = this;
     if (path.getNameCount() == 1)
       return getInodeFor(path.getFileName().toString());
-    for (int i = 0; i < path.getNameCount(); i++) {
+    for (int i = 0; i < path.getNameCount() && curr != null; i++) {
       curr = curr.getInodeFor(path.getName(i));
     }
     return curr;

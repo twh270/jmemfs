@@ -160,10 +160,87 @@ public class JMemPathTest {
   }
 
   @Test
+  public void shouldGetSubPath() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final Path path = new JMemPath(fs, "/absolute/path/with/subdirectory");
+    Path path2 = path.subpath(1, 3);
+    assertEquals("path/with", path2.toString());
+    path2 = path.subpath(0, 1);
+    assertEquals("absolute", path2.toString());
+    path2 = path.subpath(0, 3);
+    assertEquals("absolute/path/with", path2.toString());
+  }
+
+  @Test
   public void shouldNormalizePath() {
     final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
-    final Path path = new JMemPath(fs, "///way//too////many/slashes/in//this//path/");
+    Path path = new JMemPath(fs, "///way//too////many/slashes/in//this//path/");
     assertEquals("/way/too/many/slashes/in/this/path", path.toString());
+    path = new JMemPath(fs, "relative/path/trailing/slash/");
+    assertEquals("relative/path/trailing/slash", path.toString());
+    path = new JMemPath(fs, "relative/path");
+    assertEquals("relative/path", path.toString());
+    path = new JMemPath(fs, "/absolute/path");
+    assertEquals("/absolute/path", path.toString());
+
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldNotRelativizeIncompatiblePaths() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final Path path1 = new JMemPath(fs, "/absolute/path");
+    final Path path2 = new JMemPath(fs, "relative/path/with/subdirectory");
+    /*final Path path3 =*/path1.relativize(path2);
+  }
+
+  @Test
+  public void shouldRelativizeAbsolutePaths() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final Path path1 = new JMemPath(fs, "/absolute/path");
+    final Path path2 = new JMemPath(fs, "/absolute/path/with/subdirectory");
+    Path path3 = path1.relativize(path2);
+    assertEquals("with/subdirectory", path3.toString());
+    path3 = path2.relativize(path1);
+    assertEquals("../..", path3.toString());
+  }
+
+  @Test
+  public void shouldRelativizeRelativePaths() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final Path path1 = new JMemPath(fs, "relative/path");
+    final Path path2 = new JMemPath(fs, "relative/path/with/subdirectory");
+    Path path3 = path1.relativize(path2);
+    assertEquals("with/subdirectory", path3.toString());
+    path3 = path2.relativize(path1);
+    assertEquals("../..", path3.toString());
+  }
+
+  @Test
+  public void shouldRelativizeUniquePaths() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    Path path1 = new JMemPath(fs, "/absolute/path");
+    Path path2 = new JMemPath(fs, "/relative/path/with/subdirectory");
+    Path path3 = path1.relativize(path2);
+    assertEquals("../../relative/path/with/subdirectory", path3.toString());
+    path1 = new JMemPath(fs, "absolute/path");
+    path2 = new JMemPath(fs, "relative/path/with/subdirectory");
+    path3 = path1.relativize(path2);
+    assertEquals("../../relative/path/with/subdirectory", path3.toString());
+  }
+
+  @Test
+  public void shouldResolve() {
+    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    Path path1 = new JMemPath(fs, "/foo");
+    Path path2 = new JMemPath(fs, "/bar");
+    assertEquals("/bar", path1.resolve(path2).toString());
+    path2 = new JMemPath(fs, "bar");
+    assertEquals("/foo/bar", path1.resolve(path2).toString());
+    path1 = new JMemPath(fs, "foo");
+    path2 = new JMemPath(fs, "/bar");
+    assertEquals("/bar", path1.resolve(path2).toString());
+    path2 = new JMemPath(fs, "bar");
+    assertEquals("foo/bar", path1.resolve(path2).toString());
   }
 
   @Test(expected = IllegalArgumentException.class)

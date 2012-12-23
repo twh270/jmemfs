@@ -15,6 +15,7 @@ import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -80,6 +81,13 @@ public class JMemFileSystemTest {
     final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
     assertTrue(fs != null);
     assertTrue(fs instanceof JMemFileSystem);
+  }
+
+  @Test(expected = NoSuchFileException.class)
+  public void shouldGetNullForNonexistentParent() throws NoSuchFileException {
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = new JMemFileSystem(p);
+    fs.assertParentInode(fs.getPath("/this/path/does/not/exist"));
   }
 
   @Test
