@@ -21,7 +21,8 @@ import org.junit.Test;
 public class JMemPathTest {
   @Test
   public void shouldBeAbsolute() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path = new JMemPath(fs, "/absolute/path");
     assertTrue(path.isAbsolute());
 
@@ -46,14 +47,16 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetAbsolutePath() {
-    JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    JMemFileSystemProvider p = new JMemFileSystemProvider();
+    JMemFileSystem fs = p.theFileSystem;
     Path path = new JMemPath(fs, "/absolute/path");
     path = path.toAbsolutePath();
     assertEquals("/absolute/path", path.toString());
 
     final Map<String, String> env = new HashMap<String, String>();
     env.put("default.dir", "/root");
-    fs = new JMemFileSystem(new JMemFileSystemProvider(), env);
+    p = new JMemFileSystemProvider(env);
+    fs = p.theFileSystem;
     path = new JMemPath(fs, "relative/path");
     path = path.toAbsolutePath();
     assertEquals("/root/relative/path", path.toString());
@@ -74,7 +77,9 @@ public class JMemPathTest {
     path = Paths.get(JMEM_URI("/"));
     assertEquals(null, path.getFileName());
 
-    path = new JMemPath(new JMemFileSystem(new JMemFileSystemProvider()), "");
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
+    path = new JMemPath(fs, "");
     assertEquals("", path.getFileName().toString());
   }
 
@@ -87,7 +92,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetIterator() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path = new JMemPath(fs, "relative/path/here");
     String[] parts = new String[] { "relative", "path", "here" };
     Iterator<Path> i = path.iterator();
@@ -122,7 +128,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetNameIndexesAndNames() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path = new JMemPath(fs, "/");
     assertEquals(0, path.getNameCount());
 
@@ -143,7 +150,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetParent() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path = Paths.get(JMEM_URI("/o/aa/bbb/defgggg"));
     Path parent = path.getParent();
     assertEquals("/o/aa/bbb", parent.toString());
@@ -161,7 +169,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetSubPath() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     final Path path = new JMemPath(fs, "/absolute/path/with/subdirectory");
     Path path2 = path.subpath(1, 3);
     assertEquals("path/with", path2.toString());
@@ -173,7 +182,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldNormalizePath() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path = new JMemPath(fs, "///way//too////many/slashes/in//this//path/");
     assertEquals("/way/too/many/slashes/in/this/path", path.toString());
     path = new JMemPath(fs, "relative/path/trailing/slash/");
@@ -187,7 +197,8 @@ public class JMemPathTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldNotRelativizeIncompatiblePaths() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     final Path path1 = new JMemPath(fs, "/absolute/path");
     final Path path2 = new JMemPath(fs, "relative/path/with/subdirectory");
     /*final Path path3 =*/path1.relativize(path2);
@@ -195,7 +206,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldRelativizeAbsolutePaths() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     final Path path1 = new JMemPath(fs, "/absolute/path");
     final Path path2 = new JMemPath(fs, "/absolute/path/with/subdirectory");
     Path path3 = path1.relativize(path2);
@@ -206,7 +218,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldRelativizeRelativePaths() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     final Path path1 = new JMemPath(fs, "relative/path");
     final Path path2 = new JMemPath(fs, "relative/path/with/subdirectory");
     Path path3 = path1.relativize(path2);
@@ -217,7 +230,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldRelativizeUniquePaths() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path1 = new JMemPath(fs, "/absolute/path");
     Path path2 = new JMemPath(fs, "/relative/path/with/subdirectory");
     Path path3 = path1.relativize(path2);
@@ -230,7 +244,8 @@ public class JMemPathTest {
 
   @Test
   public void shouldResolve() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path1 = new JMemPath(fs, "/foo");
     Path path2 = new JMemPath(fs, "/bar");
     assertEquals("/bar", path1.resolve(path2).toString());
@@ -251,7 +266,8 @@ public class JMemPathTest {
 
   @Test
   public void testConvertToString() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path = Paths.get(JMEM_ROOT);
     assertEquals("/", path.toString());
 

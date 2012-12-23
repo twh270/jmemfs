@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
@@ -34,6 +35,21 @@ public class JMemFileSystemProviderTest {
     assertNotNull(
         "JMemFileSystemProvider is not installed, check META-INF/services for existence and correct definition of java.nio.file.spi.FileSystemProvider file",
         getProvider());
+  }
+
+  @Test
+  public void shouldAllowCheckAccessOnFile() throws IOException {
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
+    fs.createDirectory(new JMemPath(fs, "/path"), null);
+    p.checkAccess(new JMemPath(fs, "/path"));
+  }
+
+  @Test
+  public void shouldAllowCheckAccessToRoot() throws IOException {
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
+    p.checkAccess(new JMemPath(fs, "/"));
   }
 
   @Test
@@ -66,10 +82,11 @@ public class JMemFileSystemProviderTest {
     assertEquals("value", jfs.getEnvironment().get("key"));
   }
 
-  @Test
-  public void testCheckAccess() throws IOException {
+  @Test(expected = NoSuchFileException.class)
+  public void shouldThrowOnCheckAccessWithNonExistentFile() throws IOException {
     final JMemFileSystemProvider p = new JMemFileSystemProvider();
-    p.checkAccess(Paths.get(JMEM_ROOT));
+    final JMemFileSystem fs = p.theFileSystem;
+    p.checkAccess(new JMemPath(fs, "/does/not/exist"));
   }
 
   @Test

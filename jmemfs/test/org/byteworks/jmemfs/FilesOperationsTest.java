@@ -25,7 +25,7 @@ public class FilesOperationsTest {
   @Before
   public void setUp() {
     provider = new JMemFileSystemProvider();
-    fs = new JMemFileSystem(provider);
+    fs = provider.getTheFileSystem();
   }
 
   @Test

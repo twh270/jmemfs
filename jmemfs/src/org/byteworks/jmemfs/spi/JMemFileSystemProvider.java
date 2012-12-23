@@ -31,8 +31,14 @@ public class JMemFileSystemProvider extends FileSystemProvider {
     this.theFileStore = new JMemFileStore(theFileSystem);
   }
 
+  public JMemFileSystemProvider(final Map<String, String> env) {
+    this.theFileSystem = new JMemFileSystem(this, env);
+    this.theFileStore = new JMemFileStore(theFileSystem);
+  }
+
   @Override
   public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
+    theFileSystem.assertExists(path);
   }
 
   @Override
@@ -86,6 +92,14 @@ public class JMemFileSystemProvider extends FileSystemProvider {
     return SCHEME;
   }
 
+  public JMemFileStore getTheFileStore() {
+    return theFileStore;
+  }
+
+  public JMemFileSystem getTheFileSystem() {
+    return theFileSystem;
+  }
+
   @Override
   public boolean isHidden(final Path path) throws IOException {
     return false;
@@ -134,19 +148,10 @@ public class JMemFileSystemProvider extends FileSystemProvider {
   public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options) throws IOException {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("not implemented");
-
   }
 
   void checkUri(final URI path) {
     if (!(SCHEME.equals(path.getScheme())))
       throw new IllegalArgumentException("URI for this filesystem must be " + SCHEME);
-  }
-
-  JMemFileStore getTheFileStore() {
-    return theFileStore;
-  }
-
-  JMemFileSystem getTheFileSystem() {
-    return theFileSystem;
   }
 }

@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
@@ -28,14 +27,16 @@ public class JMemFileSystemTest {
 
   @Test
   public void shouldCreateDirectory() throws IOException {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     fs.createDirectory(Paths.get(JMEM_URI("/temp")), null);
     fs.createDirectory(Paths.get(JMEM_URI("/temp/working")), null);
   }
 
   @Test
   public void shouldCreatePathFromSegments() {
-    final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     Path path = fs.getPath("/first", "second", "third");
     assertEquals("/first/second/third", path.toString());
 
@@ -45,7 +46,8 @@ public class JMemFileSystemTest {
 
   @Test
   public void shouldGetDotAndDotDot() throws IOException {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     fs.createDirectory(new JMemPath(fs, "dir1"), null);
     final JMemPath dir2Path = new JMemPath(fs, "/dir1/dir2");
     fs.createDirectory(dir2Path, null);
@@ -61,7 +63,7 @@ public class JMemFileSystemTest {
   @Test
   public void shouldGetFileStores() {
     final JMemFileSystemProvider p = new JMemFileSystemProvider();
-    final JMemFileSystem fs = new JMemFileSystem(p);
+    final JMemFileSystem fs = p.theFileSystem;
     int count = 0;
     for (final FileStore f : fs.getFileStores()) {
       count++;
@@ -72,13 +74,15 @@ public class JMemFileSystemTest {
 
   @Test
   public void shouldGetFileSystemProviderFromFS() {
-    final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     assertTrue(fs.provider() instanceof JMemFileSystemProvider);
   }
 
   @Test
   public void shouldGetJMemFileSystemFromURI() {
-    final FileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
     assertTrue(fs != null);
     assertTrue(fs instanceof JMemFileSystem);
   }
@@ -86,13 +90,14 @@ public class JMemFileSystemTest {
   @Test(expected = NoSuchFileException.class)
   public void shouldGetNullForNonexistentParent() throws NoSuchFileException {
     final JMemFileSystemProvider p = new JMemFileSystemProvider();
-    final JMemFileSystem fs = new JMemFileSystem(p);
+    final JMemFileSystem fs = p.theFileSystem;
     fs.assertParentInode(fs.getPath("/this/path/does/not/exist"));
   }
 
   @Test
   public void shouldGetRootDirectories() {
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
+    final JMemFileSystemProvider provider = new JMemFileSystemProvider();
+    final JMemFileSystem fs = provider.theFileSystem;
     int count = 0;
     for (final Path p : fs.getRootDirectories()) {
       count++;
@@ -110,7 +115,9 @@ public class JMemFileSystemTest {
 
   @Test
   public void shouldGetSeparator() {
-    assertEquals("/", new JMemFileSystem(new JMemFileSystemProvider()).getSeparator());
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
+    assertEquals("/", fs.getSeparator());
   }
 
   @Test(expected = FileSystemNotFoundException.class)
@@ -123,7 +130,8 @@ public class JMemFileSystemTest {
   public void shouldSetDefaultDir() {
     final Map<String, String> env = new HashMap<String, String>();
     env.put("default.dir", "/root");
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider(), env);
+    final JMemFileSystemProvider p = new JMemFileSystemProvider(env);
+    final JMemFileSystem fs = p.theFileSystem;
     assertEquals("/root", fs.getEnvironment().get("default.dir"));
     assertEquals("/root", fs.defaultDir());
   }

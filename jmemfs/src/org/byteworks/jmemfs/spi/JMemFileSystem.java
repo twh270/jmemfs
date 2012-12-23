@@ -157,6 +157,18 @@ public class JMemFileSystem extends FileSystem {
     this.defaultDir = (String) (env.containsKey("default.dir") ? env.get("default.dir") : "/");
   }
 
+  void assertExists(final Path path) throws NoSuchFileException {
+    final JMemInode parent = assertParentInode(path);
+    if (parent == null)
+      throw new NoSuchFileException(path.toString());
+    final Path fileName = path.getFileName();
+    if (fileName != null) {
+      final JMemInode inode = parent.getInodeFor(path.getFileName());
+      if (inode == null)
+        throw new NoSuchFileException(path.toString());
+    }
+  }
+
   JMemInode assertParentInode(final Path path) throws NoSuchFileException {
     final JMemPath parent = JMemPath.asJMemPath(path.toAbsolutePath().getParent());
     final JMemInode parentNode = root.getInodeFor(parent);
