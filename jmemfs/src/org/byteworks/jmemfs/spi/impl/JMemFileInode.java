@@ -52,6 +52,16 @@ public class JMemFileInode extends JMemInode {
     return (int) bytesToRead;
   }
 
+  public void truncate(final int size) {
+    if (size > storage.capacity()) {
+      allocateStorage(size + storage.capacity());
+    }
+    storage.limit(size);
+    if (storage.position() > size) {
+      storage.position(size);
+    }
+  }
+
   public int writeBytes(final int position, final ByteBuffer src) {
     final int bytesToWrite = src.remaining();
     if (position + bytesToWrite > storage.capacity()) {

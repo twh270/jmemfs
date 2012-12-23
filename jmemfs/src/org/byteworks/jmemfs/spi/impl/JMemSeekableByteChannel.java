@@ -61,7 +61,8 @@ public class JMemSeekableByteChannel implements SeekableByteChannel {
   public SeekableByteChannel truncate(final long size) throws IOException {
     if (!open)
       throw new ClosedChannelException();
-    throw new UnsupportedOperationException("not implemented");
+    fileInode.truncate((int) size);
+    return this;
   }
 
   @Override

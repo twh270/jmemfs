@@ -99,14 +99,6 @@ public class FilesOperationsTest {
   }
 
   @Test
-  public void shouldTruncateNewFileWithWrite() throws IOException {
-    final byte[] outputBytes = TEST_STRING.getBytes();
-    Files.write(new JMemPath(fs, "/output.txt"), outputBytes, TRUNCATE_EXISTING);
-    final byte[] inputBytes = Files.readAllBytes(new JMemPath(fs, "/output.txt"));
-    assertArrayEquals(outputBytes, inputBytes);
-  }
-
-  @Test
   public void shouldWriteFile() throws IOException {
     final byte[] outputBytes = TEST_STRING.getBytes();
     Files.write(new JMemPath(fs, "/output.txt"), outputBytes);
