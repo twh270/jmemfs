@@ -9,14 +9,29 @@ import java.nio.file.Path;
 public class JMemFileInode extends JMemInode {
   private ByteBuffer storage;
 
-  public JMemFileInode(final JMemInode parent, final String name) {
+  public JMemFileInode(final JMemDirectoryInode parent, final String name) {
     super(parent, name, JMemFileAttributes.FileType.FILE);
     this.storage = ByteBuffer.allocate(0);
   }
 
-  public JMemFileInode(final JMemInode parent, final String name, final long now) {
+  public JMemFileInode(final JMemDirectoryInode parent, final String name, final long now) {
     super(parent, name, JMemFileAttributes.FileType.FILE, now);
     this.storage = ByteBuffer.allocate(0);
+  }
+
+  @Override
+  public void copyTo(final JMemInode target, final boolean replace, final boolean copyAttr) throws IOException {
+    final JMemFileInode targetFileInode = (JMemFileInode) target;
+    updateATime();
+    updateMTime();
+    if (replace) {
+      targetFileInode.truncate(0);
+    }
+    storage.position(0);
+    targetFileInode.writeBytes(0, storage);
+    if (copyAttr) {
+      target.updateAttributes(getAttributes());
+    }
   }
 
   @Override
@@ -60,6 +75,11 @@ public class JMemFileInode extends JMemInode {
     if (storage.position() > size) {
       storage.position(size);
     }
+  }
+
+  @Override
+  public void unlink() throws IOException {
+    getParent().unlink(this.getName());
   }
 
   public int writeBytes(final int position, final ByteBuffer src) {

@@ -1,5 +1,8 @@
 package org.byteworks.jmemfs.spi;
 
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -10,6 +13,7 @@ import static org.byteworks.jmemfs.spi.JMemConstants.SEPARATOR;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
@@ -157,16 +161,18 @@ public class JMemFileSystem extends FileSystem {
     this.defaultDir = (String) (env.containsKey("default.dir") ? env.get("default.dir") : "/");
   }
 
-  void assertExists(final Path path) throws NoSuchFileException {
+  JMemInode assertInode(final Path path) throws NoSuchFileException {
     final JMemInode parent = assertParentInode(path);
+    JMemInode inode = null;
     if (parent == null)
       throw new NoSuchFileException(path.toString());
     final Path fileName = path.getFileName();
     if (fileName != null) {
-      final JMemInode inode = parent.getInodeFor(path.getFileName());
+      inode = parent.getInodeFor(path.getFileName());
       if (inode == null)
         throw new NoSuchFileException(path.toString());
     }
+    return inode;
   }
 
   JMemInode assertParentInode(final Path path) throws NoSuchFileException {
@@ -175,6 +181,41 @@ public class JMemFileSystem extends FileSystem {
     if (parentNode == null)
       throw new NoSuchFileException(parent.toString());
     return parentNode;
+  }
+
+  void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
+    boolean replace = false;
+    boolean copyAttr = false;
+    for (final CopyOption option : options) {
+      if (ATOMIC_MOVE == option)
+        throw new UnsupportedOperationException("Cannot atomically copy files");
+      else if (COPY_ATTRIBUTES == option) {
+        copyAttr = true;
+      }
+      else if (REPLACE_EXISTING == option) {
+        replace = true;
+      }
+    }
+
+    final JMemInode sourceInode = assertInode(source);
+
+    final JMemInode targetParent = assertParentInode(target);
+    JMemInode targetInode = targetParent.getInodeFor(target.getFileName());
+
+    final boolean targetExists = targetInode != null;
+    final boolean isSourceDir = sourceInode.getAttributes().isDirectory();
+    final boolean isTargetDir = targetExists ? targetInode.getAttributes().isDirectory() : isSourceDir;
+    if (replace && isSourceDir && !isTargetDir)
+      throw new IOException("Source path " + source.toString() + " is a directory but target " + target.toString() + " is a file");
+    else if (!replace && targetExists)
+      throw new FileAlreadyExistsException("Target path already exists: " + target.toString());
+    else if (!targetExists && isSourceDir) {
+      targetInode = targetParent.createDirectory(target.getFileName());
+    }
+    else if (!targetExists && !isSourceDir) {
+      targetInode = targetParent.createFile(target.getFileName());
+    }
+    sourceInode.copyTo(targetInode, replace, copyAttr);
   }
 
   SeekableByteChannel createChannel(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws IOException {
@@ -188,6 +229,11 @@ public class JMemFileSystem extends FileSystem {
 
   void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) throws IOException {
     assertParentInode(dir).createDirectory(dir.getFileName());
+  }
+
+  void delete(final Path path) throws IOException {
+    final JMemInode inode = assertInode(path);
+    inode.unlink();
   }
 
   SeekableByteChannel openFile(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws IOException {

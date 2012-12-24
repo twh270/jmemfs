@@ -7,20 +7,22 @@ import java.nio.file.Path;
 
 public abstract class JMemInode {
   private final String name;
-  private final JMemInode parent;
+  private final JMemDirectoryInode parent;
   private final JMemFileAttributes attributes;
 
-  public JMemInode(final JMemInode parent, final String name, final JMemFileAttributes.FileType fileType) {
+  public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType) {
     this.parent = parent;
     this.name = name;
     this.attributes = new JMemFileAttributes(fileType, currentTime());
   }
 
-  public JMemInode(final JMemInode parent, final String name, final JMemFileAttributes.FileType fileType, final long now) {
+  public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType, final long now) {
     this.parent = parent;
     this.name = name;
     this.attributes = new JMemFileAttributes(fileType, now);
   }
+
+  public abstract void copyTo(JMemInode target, boolean replace, boolean copyAttr) throws IOException;
 
   public abstract SeekableByteChannel createChannel();
 
@@ -47,8 +49,17 @@ public abstract class JMemInode {
     return name;
   }
 
-  public JMemInode getParent() {
+  public JMemDirectoryInode getParent() {
     return parent;
+  }
+
+  public abstract void unlink() throws IOException;
+
+  public void updateAttributes(final JMemFileAttributes attributes2) {
+    getAttributes().updateMTime(attributes2.lastModifiedTime().toMillis());
+    getAttributes().updateATime(attributes2.lastAccessTime().toMillis());
+    getAttributes().updateCTime(attributes2.creationTime().toMillis());
+    getAttributes().updateSize(attributes2.size());
   }
 
   long currentTime() {

@@ -2,6 +2,7 @@ package org.byteworks.jmemfs.spi.impl;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -10,12 +11,21 @@ import java.util.Map;
 public class JMemDirectoryInode extends JMemInode {
   private final Map<String, JMemInode> entries = new HashMap<String, JMemInode>();
 
-  public JMemDirectoryInode(final JMemInode parent, final String name) {
+  public JMemDirectoryInode(final JMemDirectoryInode parent, final String name) {
     super(parent, name, JMemFileAttributes.FileType.DIRECTORY);
   }
 
-  public JMemDirectoryInode(final JMemInode parent, final String name, final long now) {
+  public JMemDirectoryInode(final JMemDirectoryInode parent, final String name, final long now) {
     super(parent, name, JMemFileAttributes.FileType.DIRECTORY, now);
+  }
+
+  @Override
+  public void copyTo(final JMemInode target, final boolean replace, final boolean copyAttr) throws IOException {
+    updateATime();
+    updateMTime();
+    if (copyAttr) {
+      target.updateAttributes(getAttributes());
+    }
   }
 
   @Override
@@ -66,6 +76,17 @@ public class JMemDirectoryInode extends JMemInode {
       return getParent();
     else
       return entries.get(name);
+  }
+
+  @Override
+  public void unlink() throws IOException {
+    if (entries.size() > 0)
+      throw new DirectoryNotEmptyException("Directory cannot be deleted if it is not empty");
+    getParent().unlink(this.getName());
+  }
+
+  public void unlink(final String name) {
+    entries.remove(name);
   }
 
 }

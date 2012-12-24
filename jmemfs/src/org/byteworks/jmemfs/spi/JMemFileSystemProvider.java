@@ -38,13 +38,12 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-    theFileSystem.assertExists(path);
+    theFileSystem.assertInode(path);
   }
 
   @Override
   public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    theFileSystem.copy(source, target, options);
   }
 
   @Override
@@ -54,8 +53,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public void delete(final Path path) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    theFileSystem.delete(path);
   }
 
   @Override
