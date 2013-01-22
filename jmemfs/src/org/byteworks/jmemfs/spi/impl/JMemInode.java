@@ -5,20 +5,46 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 
+import org.byteworks.jmemfs.spi.JMemFileSystem;
+
 public abstract class JMemInode {
+  static final class SystemTimeProvider implements JMemTimeProvider {
+    public static final SystemTimeProvider instance = new SystemTimeProvider();
+
+    @Override
+    public long currentTimeMillis() {
+      return System.currentTimeMillis();
+    }
+  }
   private final String name;
   private final JMemDirectoryInode parent;
   private final JMemFileAttributes attributes;
 
-  public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType) {
+  private final JMemTimeProvider timeProvider;
+
+  public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType,
+      final JMemFileSystem fileSystem) {
     this.parent = parent;
     this.name = name;
+    if (fileSystem.getEnvironment().containsKey("timeProvider")) {
+      this.timeProvider = (JMemTimeProvider) fileSystem.getEnvironment().get("timeProvider");
+    }
+    else {
+      this.timeProvider = SystemTimeProvider.instance;
+    }
     this.attributes = new JMemFileAttributes(fileType, currentTime());
   }
 
-  public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType, final long now) {
+  public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType, final long now,
+      final JMemFileSystem fileSystem) {
     this.parent = parent;
     this.name = name;
+    if (fileSystem.getEnvironment().containsKey("timeProvider")) {
+      this.timeProvider = (JMemTimeProvider) fileSystem.getEnvironment().get("timeProvider");
+    }
+    else {
+      this.timeProvider = SystemTimeProvider.instance;
+    }
     this.attributes = new JMemFileAttributes(fileType, now);
   }
 
@@ -26,9 +52,9 @@ public abstract class JMemInode {
 
   public abstract SeekableByteChannel createChannel();
 
-  public abstract JMemInode createDirectory(Path name) throws IOException;
+  public abstract JMemInode createDirectory(Path name, JMemFileSystem fileSystem) throws IOException;
 
-  public abstract JMemInode createFile(Path name) throws FileAlreadyExistsException;
+  public abstract JMemInode createFile(Path name, JMemFileSystem fileSystem) throws FileAlreadyExistsException;
 
   @Override
   public boolean equals(final Object other) {
@@ -63,7 +89,7 @@ public abstract class JMemInode {
   }
 
   long currentTime() {
-    return System.currentTimeMillis();
+    return timeProvider.currentTimeMillis();
   }
 
   void updateATime() {

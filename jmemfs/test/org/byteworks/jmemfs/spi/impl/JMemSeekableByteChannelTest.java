@@ -8,6 +8,8 @@ import static org.junit.Assert.assertArrayEquals;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.byteworks.jmemfs.spi.JMemFileSystem;
+import org.byteworks.jmemfs.spi.JMemFileSystemProvider;
 import org.junit.Test;
 
 public class JMemSeekableByteChannelTest {
@@ -15,14 +17,18 @@ public class JMemSeekableByteChannelTest {
 
   @Test
   public void shouldBeOpen() {
-    final JMemFileInode inode = new JMemFileInode(null, "file");
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "file", fs);
     final JMemSeekableByteChannel channel = new JMemSeekableByteChannel(inode);
     assertTrue(channel.isOpen());
   }
 
   @Test
   public void shouldClose() throws IOException {
-    final JMemFileInode inode = new JMemFileInode(null, "file");
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "file", fs);
     final JMemSeekableByteChannel channel = new JMemSeekableByteChannel(inode);
     channel.close();
     assertFalse(channel.isOpen());
@@ -30,7 +36,9 @@ public class JMemSeekableByteChannelTest {
 
   @Test
   public void shouldSetPosition() throws IOException {
-    final JMemFileInode inode = new JMemFileInode(null, "file");
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "file", fs);
     final JMemSeekableByteChannel channel = new JMemSeekableByteChannel(inode);
     assertEquals(0, channel.position());
     channel.position(2400);
@@ -39,7 +47,9 @@ public class JMemSeekableByteChannelTest {
 
   @Test
   public void shouldWriteAndRead() throws IOException {
-    final JMemFileInode inode = new JMemFileInode(null, "file");
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "file", fs);
     final JMemSeekableByteChannel channel = new JMemSeekableByteChannel(inode);
     channel.write(ByteBuffer.wrap(BYTES));
     assertEquals(5, channel.position());

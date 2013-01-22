@@ -19,8 +19,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.byteworks.jmemfs.spi.impl.JMemFileAttributes;
 
 public class JMemFileSystemProvider extends FileSystemProvider {
   final JMemFileSystem theFileSystem;
@@ -31,7 +34,7 @@ public class JMemFileSystemProvider extends FileSystemProvider {
     this.theFileStore = new JMemFileStore(theFileSystem);
   }
 
-  public JMemFileSystemProvider(final Map<String, String> env) {
+  public JMemFileSystemProvider(final Map<String, Object> env) {
     this.theFileSystem = new JMemFileSystem(this, env);
     this.theFileStore = new JMemFileStore(theFileSystem);
   }
@@ -138,8 +141,33 @@ public class JMemFileSystemProvider extends FileSystemProvider {
 
   @Override
   public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options) throws IOException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("not implemented");
+    String[] split = attributes.split(":");
+    if (split.length == 0)
+      throw new IllegalArgumentException("Invalid attributes argument");
+    if (split.length == 1) {
+      split = new String[] { "jmemfs", split[0] };
+    }
+    Class attrClass = null;
+    if ("basic".equals(split[0])) {
+      attrClass = BasicFileAttributes.class;
+    }
+    else if ("jmemfs".equals(split[0])) {
+      attrClass = JMemFileAttributes.class;
+    }
+    if (attrClass == null)
+      throw new UnsupportedOperationException("Attribute view '" + split[0] + "' is not available for jmemfs");
+
+    final BasicFileAttributes attribs = readAttributes(path, attrClass, options);
+    final Map<String, Object> attribMap = new HashMap<String, Object>();
+    attribMap.put("creationTime", attribs.creationTime());
+    attribMap.put("size", attribs.size());
+    attribMap.put("lastAccessTime", attribs.lastAccessTime());
+    attribMap.put("lastModifiedTime", attribs.lastModifiedTime());
+    attribMap.put("isDirectory", attribs.isDirectory());
+    attribMap.put("isRegularFile", attribs.isRegularFile());
+    attribMap.put("isSymbolicLink", attribs.isSymbolicLink());
+    attribMap.put("isOther", attribs.isOther());
+    return attribMap;
   }
 
   @Override

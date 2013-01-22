@@ -53,7 +53,7 @@ public class JMemPathTest {
     path = path.toAbsolutePath();
     assertEquals("/absolute/path", path.toString());
 
-    final Map<String, String> env = new HashMap<String, String>();
+    final Map<String, Object> env = new HashMap<String, Object>();
     env.put("default.dir", "/root");
     p = new JMemFileSystemProvider(env);
     fs = p.theFileSystem;

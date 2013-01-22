@@ -8,15 +8,17 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.byteworks.jmemfs.spi.JMemFileSystem;
+
 public class JMemDirectoryInode extends JMemInode {
   private final Map<String, JMemInode> entries = new HashMap<String, JMemInode>();
 
-  public JMemDirectoryInode(final JMemDirectoryInode parent, final String name) {
-    super(parent, name, JMemFileAttributes.FileType.DIRECTORY);
+  public JMemDirectoryInode(final JMemDirectoryInode parent, final String name, final JMemFileSystem fileSystem) {
+    super(parent, name, JMemFileAttributes.FileType.DIRECTORY, fileSystem);
   }
 
-  public JMemDirectoryInode(final JMemDirectoryInode parent, final String name, final long now) {
-    super(parent, name, JMemFileAttributes.FileType.DIRECTORY, now);
+  public JMemDirectoryInode(final JMemDirectoryInode parent, final String name, final long now, final JMemFileSystem fileSystem) {
+    super(parent, name, JMemFileAttributes.FileType.DIRECTORY, now, fileSystem);
   }
 
   @Override
@@ -34,23 +36,23 @@ public class JMemDirectoryInode extends JMemInode {
   }
 
   @Override
-  public JMemInode createDirectory(final Path name) throws IOException {
+  public JMemInode createDirectory(final Path name, final JMemFileSystem fileSystem) throws IOException {
     updateATime();
     if (entries.containsKey(name.getFileName().toString()))
       throw new FileAlreadyExistsException(name.toString());
-    final JMemInode node = new JMemDirectoryInode(this, name.getFileName().toString());
+    final JMemInode node = new JMemDirectoryInode(this, name.getFileName().toString(), fileSystem);
     updateMTime();
     entries.put(name.getFileName().toString(), node);
     return node;
   }
 
   @Override
-  public JMemInode createFile(final Path name) throws FileAlreadyExistsException {
+  public JMemInode createFile(final Path name, final JMemFileSystem fileSystem) throws FileAlreadyExistsException {
     updateATime();
     synchronized (entries) {
       if (getInodeFor(name.getFileName()) != null)
         throw new FileAlreadyExistsException(name.toString());
-      final JMemInode fileInode = new JMemFileInode(this, name.getFileName().toString());
+      final JMemInode fileInode = new JMemFileInode(this, name.getFileName().toString(), fileSystem);
       entries.put(name.getFileName().toString(), fileInode);
       updateMTime();
       return fileInode;

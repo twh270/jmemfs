@@ -46,7 +46,7 @@ public class JMemFileSystem extends FileSystem {
 
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider) {
     this.provider = jMemFileSystemProvider;
-    this.env = new HashMap<String, String>();
+    this.env = new HashMap<String, Object>();
     initialize();
   }
 
@@ -143,11 +143,11 @@ public class JMemFileSystem extends FileSystem {
     JMemInode fileInode = null;
     final Path fileName = path.getFileName();
     if (options.contains(CREATE_NEW)) {
-      fileInode = parent.createFile(fileName);
+      fileInode = parent.createFile(fileName, this);
     }
     else if (options.contains(CREATE)) {
       try {
-        fileInode = parent.createFile(fileName);
+        fileInode = parent.createFile(fileName, this);
       }
       catch (final FileAlreadyExistsException ex) {
         fileInode = parent.getInodeFor(fileName);
@@ -157,7 +157,7 @@ public class JMemFileSystem extends FileSystem {
   }
 
   private void initialize() {
-    this.root = new JMemDirectoryInode(null, SEPARATOR);
+    this.root = new JMemDirectoryInode(null, SEPARATOR, this);
     this.defaultDir = (String) (env.containsKey("default.dir") ? env.get("default.dir") : "/");
   }
 
@@ -210,10 +210,10 @@ public class JMemFileSystem extends FileSystem {
     else if (!replace && targetExists)
       throw new FileAlreadyExistsException("Target path already exists: " + target.toString());
     else if (!targetExists && isSourceDir) {
-      targetInode = targetParent.createDirectory(target.getFileName());
+      targetInode = targetParent.createDirectory(target.getFileName(), this);
     }
     else if (!targetExists && !isSourceDir) {
-      targetInode = targetParent.createFile(target.getFileName());
+      targetInode = targetParent.createFile(target.getFileName(), this);
     }
     sourceInode.copyTo(targetInode, replace, copyAttr);
   }
@@ -228,7 +228,7 @@ public class JMemFileSystem extends FileSystem {
   }
 
   void createDirectory(final Path dir, final FileAttribute< ? >[] attrs) throws IOException {
-    assertParentInode(dir).createDirectory(dir.getFileName());
+    assertParentInode(dir).createDirectory(dir.getFileName(), this);
   }
 
   void delete(final Path path) throws IOException {

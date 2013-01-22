@@ -86,11 +86,13 @@ public class JMemPath implements Path {
 
   @Override
   public Path getParent() {
+    final int[] indexes = getIndexes();
+    if (indexes.length == 0)
+      return null;
     final StringBuilder sb = new StringBuilder();
     if (isAbsolute()) {
       sb.append(SEPARATOR);
     }
-    final int[] indexes = getIndexes();
     for (int i = 0; i < indexes.length - 1; i++) {
       sb.append(getName(i)).append(SEPARATOR);
     }
@@ -273,6 +275,21 @@ public class JMemPath implements Path {
     }
   }
 
+  private void buildIndexChunks() {
+    int offset = 0;
+    if (isAbsolute()) {
+      offset = 1;
+    }
+    final String[] chunks = isEmpty() ? new String[1] : path.substring(offset).split(SEPARATOR);
+    final int[] tempNameIndexes = new int[chunks.length];
+    int position = 0;
+    for (int i = 0; i < chunks.length; i++) {
+      tempNameIndexes[i] = position + offset;
+      position += chunks[i].length() + 1;
+    }
+    nameIndexes = tempNameIndexes;
+  }
+
   private synchronized void buildIndexes() {
     if (nameIndexes == null) {
       if (isEmpty()) {
@@ -282,18 +299,7 @@ public class JMemPath implements Path {
         nameIndexes = new int[0];
       }
       else {
-        int offset = 0;
-        if (isAbsolute()) {
-          offset = 1;
-        }
-        final String[] chunks = isEmpty() ? new String[1] : path.substring(offset).split(SEPARATOR);
-        final int[] tempNameIndexes = new int[chunks.length];
-        int position = 0;
-        for (int i = 0; i < chunks.length; i++) {
-          tempNameIndexes[i] = position + offset;
-          position += chunks[i].length() + 1;
-        }
-        nameIndexes = tempNameIndexes;
+        buildIndexChunks();
       }
     }
   }

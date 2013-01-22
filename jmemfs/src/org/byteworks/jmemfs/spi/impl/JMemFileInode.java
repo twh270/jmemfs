@@ -6,16 +6,18 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 
+import org.byteworks.jmemfs.spi.JMemFileSystem;
+
 public class JMemFileInode extends JMemInode {
   private ByteBuffer storage;
 
-  public JMemFileInode(final JMemDirectoryInode parent, final String name) {
-    super(parent, name, JMemFileAttributes.FileType.FILE);
+  public JMemFileInode(final JMemDirectoryInode parent, final String name, final JMemFileSystem fileSystem) {
+    super(parent, name, JMemFileAttributes.FileType.FILE, fileSystem);
     this.storage = ByteBuffer.allocate(0);
   }
 
-  public JMemFileInode(final JMemDirectoryInode parent, final String name, final long now) {
-    super(parent, name, JMemFileAttributes.FileType.FILE, now);
+  public JMemFileInode(final JMemDirectoryInode parent, final String name, final long now, final JMemFileSystem fileSystem) {
+    super(parent, name, JMemFileAttributes.FileType.FILE, now, fileSystem);
     this.storage = ByteBuffer.allocate(0);
   }
 
@@ -41,12 +43,12 @@ public class JMemFileInode extends JMemInode {
   }
 
   @Override
-  public JMemInode createDirectory(final Path name) throws IOException {
+  public JMemInode createDirectory(final Path name, final JMemFileSystem fileSystem) throws IOException {
     throw new IllegalStateException("A file inode cannot create a directory");
   }
 
   @Override
-  public JMemInode createFile(final Path name) throws FileAlreadyExistsException {
+  public JMemInode createFile(final Path name, final JMemFileSystem fileSystem) throws FileAlreadyExistsException {
     throw new IllegalStateException("A file inode cannot create a file");
   }
 

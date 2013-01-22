@@ -128,7 +128,7 @@ public class JMemFileSystemTest {
 
   @Test
   public void shouldSetDefaultDir() {
-    final Map<String, String> env = new HashMap<String, String>();
+    final Map<String, Object> env = new HashMap<String, Object>();
     env.put("default.dir", "/root");
     final JMemFileSystemProvider p = new JMemFileSystemProvider(env);
     final JMemFileSystem fs = p.theFileSystem;

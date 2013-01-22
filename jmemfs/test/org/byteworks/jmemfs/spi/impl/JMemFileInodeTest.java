@@ -18,30 +18,36 @@ public class JMemFileInodeTest {
 
   @Test
   public void shouldCreateChannel() {
-    final JMemFileInode inode = new JMemFileInode(null, "input.txt");
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "input.txt", fs);
     final SeekableByteChannel channel = inode.createChannel();
     assertNotNull(channel);
   }
 
   @Test(expected = IllegalStateException.class)
   public void shouldNotAllowCreateDirectory() throws IOException {
-    final JMemFileInode inode = new JMemFileInode(null, "input.txt");
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
-    inode.createDirectory(new JMemPath(fs, "illegal"));
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "input.txt", fs);
+    inode.createDirectory(new JMemPath(fs, "illegal"), fs);
   }
 
   @Test(expected = IllegalStateException.class)
   public void shouldNotAllowCreateFile() throws FileAlreadyExistsException {
-    final JMemFileInode inode = new JMemFileInode(null, "input.txt");
-    final JMemFileSystem fs = new JMemFileSystem(new JMemFileSystemProvider());
-    inode.createFile(new JMemPath(fs, "illegal"));
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "input.txt", fs);
+    inode.createFile(new JMemPath(fs, "illegal"), fs);
   }
 
   @Test
   public void shouldUpdateAttributesOnWrite() {
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
     final long now = System.currentTimeMillis();
     final long later = now + 1;
-    final JMemFileInode inode = new JMemFileInode(null, "input.txt", now) {
+    final JMemFileInode inode = new JMemFileInode(null, "input.txt", now, fs) {
       @Override
       long currentTime() {
         return later;
@@ -56,7 +62,9 @@ public class JMemFileInodeTest {
 
   @Test
   public void shouldWrite() {
-    final JMemFileInode inode = new JMemFileInode(null, "input.txt");
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "input.txt", fs);
     final ByteBuffer src = ByteBuffer.wrap(BYTES);
     assertEquals(BYTES.length, inode.writeBytes(0, src));
   }
