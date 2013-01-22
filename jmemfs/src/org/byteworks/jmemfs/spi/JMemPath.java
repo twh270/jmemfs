@@ -56,15 +56,13 @@ public class JMemPath implements Path {
 
   @Override
   public Path getFileName() {
+    if (isEmpty())
+      return this;
+    if (isRoot())
+      return null;
     final int[] indexes = getIndexes();
-    if (indexes.length == 0)
-      return new JMemPath(fileSystem, "");
-    if (indexes.length == 1) {
-      if (isRoot())
-        return null;
-      else if (!path.startsWith(SEPARATOR))
-        return this;
-    }
+    if (indexes.length == 1 && !path.startsWith(SEPARATOR))
+      return this;
     return new JMemPath(fileSystem, getPathElement(indexes.length - 1));
   }
 
@@ -77,7 +75,7 @@ public class JMemPath implements Path {
   public Path getName(final int index) {
     if (isEmpty())
       return new JMemPath(fileSystem, "");
-    else if (isRoot())
+    if (isRoot())
       throw new IllegalArgumentException("Cannot get name elements for root");
     final int[] indexes = getIndexes();
     if (index < 0 || index >= indexes.length)
@@ -249,7 +247,7 @@ public class JMemPath implements Path {
     if (beginIndex < 0)
       throw new IllegalArgumentException("Start index was less than zero");
     if (beginIndex >= endIndex)
-      throw new IllegalArgumentException("Begin index must be less than end");
+      throw new IllegalArgumentException("Start index must be less than end");
     for (int i = beginIndex; i < endIndex; i++) {
       sb.append(getName(i)).append(SEPARATOR);
     }

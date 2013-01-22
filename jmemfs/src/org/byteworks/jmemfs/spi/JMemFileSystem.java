@@ -163,15 +163,9 @@ public class JMemFileSystem extends FileSystem {
 
   JMemInode assertInode(final Path path) throws NoSuchFileException {
     final JMemInode parent = assertParentInode(path);
-    JMemInode inode = null;
-    if (parent == null)
+    final JMemInode inode = parent == null ? null : parent.getInodeFor(path.getFileName());
+    if (inode == null)
       throw new NoSuchFileException(path.toString());
-    final Path fileName = path.getFileName();
-    if (fileName != null) {
-      inode = parent.getInodeFor(path.getFileName());
-      if (inode == null)
-        throw new NoSuchFileException(path.toString());
-    }
     return inode;
   }
 
@@ -252,19 +246,18 @@ public class JMemFileSystem extends FileSystem {
   }
 
   <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type, final LinkOption... options) throws IOException {
-    if (!(type == JMemFileAttributes.class) && !(type == BasicFileAttributes.class))
-      throw new UnsupportedOperationException("Unsupported attribute type " + type.getName());
+    assertValidAttributeClass(type);
     final JMemInode parent = assertParentInode(path);
     JMemInode inode;
-    if (path.getFileName() == null) {
-      inode = root;
-    }
-    else {
-      inode = parent.getInodeFor(path.getFileName());
-    }
+    inode = parent.getInodeFor(path.getFileName());
     if (inode == null)
       throw new NoSuchFileException("No such file: " + path.toString());
     return (A) inode.getAttributes();
+  }
+
+  private <A extends BasicFileAttributes> void assertValidAttributeClass(final Class<A> type) {
+    if (!(type == JMemFileAttributes.class) && !(type == BasicFileAttributes.class))
+      throw new UnsupportedOperationException("Unsupported attribute type " + type.getName());
   }
 
   JMemInode root() {

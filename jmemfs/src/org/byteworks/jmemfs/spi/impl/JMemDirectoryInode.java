@@ -17,12 +17,8 @@ public class JMemDirectoryInode extends JMemInode {
     super(parent, name, JMemFileAttributes.FileType.DIRECTORY, fileSystem);
   }
 
-  public JMemDirectoryInode(final JMemDirectoryInode parent, final String name, final long now, final JMemFileSystem fileSystem) {
-    super(parent, name, JMemFileAttributes.FileType.DIRECTORY, now, fileSystem);
-  }
-
   @Override
-  public void copyTo(final JMemInode target, final boolean replace, final boolean copyAttr) throws IOException {
+  public void copyTo(final JMemInode target, final boolean replace, final boolean copyAttr) {
     updateATime();
     updateMTime();
     if (copyAttr) {
@@ -89,7 +85,7 @@ public class JMemDirectoryInode extends JMemInode {
     getParent().unlink(this.getName());
   }
 
-  public void unlink(final String name) {
+  void unlink(final String name) {
     entries.remove(name);
   }
 

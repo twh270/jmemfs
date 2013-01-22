@@ -32,26 +32,26 @@ public class FilesOperationsTest {
   private static final byte[] BYTES2 = TEST_STRING2.getBytes();
 
   private JMemFileSystemProvider provider;
-  private JMemFileSystem fs;
+  private JMemFileSystem fileSystem;
 
   @Before
   public void setUp() {
     provider = new JMemFileSystemProvider();
-    fs = provider.getTheFileSystem();
+    fileSystem = provider.getTheFileSystem();
   }
 
   @Test
   public void shouldAppendExistingFileWithWrite() throws IOException {
-    Files.write(new JMemPath(fs, "/output.txt"), BYTES);
-    Files.write(new JMemPath(fs, "/output.txt"), BYTES, APPEND);
-    final byte[] readBytes = Files.readAllBytes(new JMemPath(fs, "/output.txt"));
+    Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES);
+    Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES, APPEND);
+    final byte[] readBytes = Files.readAllBytes(new JMemPath(fileSystem, "/output.txt"));
     assertEquals("This is a stringThis is a string", new String(readBytes));
   }
 
   @Test
   public void shouldCopyFromInputStreamToPath() throws IOException {
     final InputStream is = new ByteArrayInputStream(BYTES);
-    final Path path = new JMemPath(fs, "/output.txt");
+    final Path path = new JMemPath(fileSystem, "/output.txt");
     Files.copy(is, path);
     final byte[] readBytes = Files.readAllBytes(path);
     assertArrayEquals(BYTES, readBytes);
@@ -59,7 +59,7 @@ public class FilesOperationsTest {
 
   @Test
   public void shouldCopyFromPathToOutputStream() throws IOException {
-    final Path path = new JMemPath(fs, "/output.txt");
+    final Path path = new JMemPath(fileSystem, "/output.txt");
     Files.write(path, BYTES);
     final ByteArrayOutputStream bos = new ByteArrayOutputStream();
     Files.copy(path, bos);
@@ -69,8 +69,8 @@ public class FilesOperationsTest {
 
   @Test
   public void shouldCopyFromSourceToTargetPath() throws IOException {
-    final Path source = new JMemPath(fs, "/source.txt");
-    final Path target = new JMemPath(fs, "/target.txt");
+    final Path source = new JMemPath(fileSystem, "/source.txt");
+    final Path target = new JMemPath(fileSystem, "/target.txt");
     Files.write(source, BYTES);
     Files.copy(source, target);
     final byte[] readBytes = Files.readAllBytes(target);
@@ -82,7 +82,7 @@ public class FilesOperationsTest {
   @Test
   public void shouldCopyWithReplaceInputStreamToPath() throws IOException {
     InputStream is = new ByteArrayInputStream(BYTES);
-    final Path path = new JMemPath(fs, "/output.txt");
+    final Path path = new JMemPath(fileSystem, "/output.txt");
     Files.copy(is, path);
     is = new ByteArrayInputStream(BYTES2);
     Files.copy(is, path, REPLACE_EXISTING);
@@ -92,33 +92,33 @@ public class FilesOperationsTest {
 
   @Test
   public void shouldCreateDirectories() throws IOException {
-    final Path path = new JMemPath(fs, "/temp/working/path");
+    final Path path = new JMemPath(fileSystem, "/temp/working/path");
     Files.createDirectories(path);
   }
 
   @Test
   public void shouldCreateDirectory() throws IOException {
-    Path path = new JMemPath(fs, "/temp");
+    Path path = new JMemPath(fileSystem, "/temp");
     Files.createDirectory(path);
-    path = new JMemPath(fs, "/temp/working");
+    path = new JMemPath(fileSystem, "/temp/working");
     Files.createDirectory(path);
   }
 
   @Test
   public void shouldCreateFile() throws IOException {
-    final Path path = new JMemPath(fs, "/input.txt");
+    final Path path = new JMemPath(fileSystem, "/input.txt");
     Files.createFile(path);
   }
 
   @Test
   public void shouldCreateTempDirectory() throws IOException {
-    final Path dir = Files.createTempDirectory(new JMemPath(fs, "/"), "temp");
+    final Path dir = Files.createTempDirectory(new JMemPath(fileSystem, "/"), "temp");
     assertTrue(Files.exists(dir));
   }
 
   @Test
   public void shouldCreateTempFile() throws IOException {
-    final Path file = Files.createTempFile(new JMemPath(fs, "/"), "temp", ".txt");
+    final Path file = Files.createTempFile(new JMemPath(fileSystem, "/"), "temp", ".txt");
     assertTrue(Files.exists(file));
   }
 
@@ -202,34 +202,34 @@ public class FilesOperationsTest {
 
   @Test(expected = IOException.class)
   public void shouldNotAppendNewFileWithWrite() throws IOException {
-    Files.write(new JMemPath(fs, "/output.txt"), BYTES, APPEND);
-    final byte[] readBytes = Files.readAllBytes(new JMemPath(fs, "/output.txt"));
+    Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES, APPEND);
+    final byte[] readBytes = Files.readAllBytes(new JMemPath(fileSystem, "/output.txt"));
     assertArrayEquals(BYTES, readBytes);
   }
 
   @Test(expected = IOException.class)
   public void shouldNotReadNonexistentFile() throws IOException {
-    /*final byte[] inputBytes = */Files.readAllBytes(new JMemPath(fs, "/output.txt"));
+    /*final byte[] inputBytes = */Files.readAllBytes(new JMemPath(fileSystem, "/output.txt"));
   }
 
   @Test
   public void shouldReadFile() throws IOException {
-    Files.write(new JMemPath(fs, "/output.txt"), BYTES);
-    final byte[] inputBytes = Files.readAllBytes(new JMemPath(fs, "/output.txt"));
+    Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES);
+    final byte[] inputBytes = Files.readAllBytes(new JMemPath(fileSystem, "/output.txt"));
     assertArrayEquals(BYTES, inputBytes);
   }
 
   @Test
   public void shouldTruncateExistingFileWithWrite() throws IOException {
     final byte[] BYTES = TEST_STRING.getBytes();
-    Files.write(new JMemPath(fs, "/output.txt"), BYTES);
-    Files.write(new JMemPath(fs, "/output.txt"), BYTES, TRUNCATE_EXISTING);
-    final byte[] readBytes = Files.readAllBytes(new JMemPath(fs, "/output.txt"));
+    Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES);
+    Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES, TRUNCATE_EXISTING);
+    final byte[] readBytes = Files.readAllBytes(new JMemPath(fileSystem, "/output.txt"));
     assertArrayEquals(BYTES, readBytes);
   }
 
   @Test
   public void shouldWriteFile() throws IOException {
-    Files.write(new JMemPath(fs, "/output.txt"), BYTES);
+    Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES);
   }
 }

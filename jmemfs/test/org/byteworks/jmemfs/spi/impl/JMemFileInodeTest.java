@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.byteworks.jmemfs.spi.JMemFileSystem;
 import org.byteworks.jmemfs.spi.JMemFileSystemProvider;
@@ -43,11 +45,19 @@ public class JMemFileInodeTest {
 
   @Test
   public void shouldUpdateAttributesOnWrite() {
-    final JMemFileSystemProvider p = new JMemFileSystemProvider();
-    final JMemFileSystem fs = p.getTheFileSystem();
     final long now = System.currentTimeMillis();
     final long later = now + 1;
-    final JMemFileInode inode = new JMemFileInode(null, "input.txt", now, fs) {
+    final JMemTimeProvider timeProvider = new JMemTimeProvider() {
+      @Override
+      public long currentTimeMillis() {
+        return now;
+      }
+    };
+    final Map<String, Object> env = new HashMap<String, Object>();
+    env.put("timeProvider", timeProvider);
+    final JMemFileSystemProvider p = new JMemFileSystemProvider(env);
+    final JMemFileSystem fs = p.getTheFileSystem();
+    final JMemFileInode inode = new JMemFileInode(null, "input.txt", fs) {
       @Override
       long currentTime() {
         return later;

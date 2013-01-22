@@ -19,7 +19,6 @@ public abstract class JMemInode {
   private final String name;
   private final JMemDirectoryInode parent;
   private final JMemFileAttributes attributes;
-
   private final JMemTimeProvider timeProvider;
 
   public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType,
@@ -33,19 +32,6 @@ public abstract class JMemInode {
       this.timeProvider = SystemTimeProvider.instance;
     }
     this.attributes = new JMemFileAttributes(fileType, currentTime());
-  }
-
-  public JMemInode(final JMemDirectoryInode parent, final String name, final JMemFileAttributes.FileType fileType, final long now,
-      final JMemFileSystem fileSystem) {
-    this.parent = parent;
-    this.name = name;
-    if (fileSystem.getEnvironment().containsKey("timeProvider")) {
-      this.timeProvider = (JMemTimeProvider) fileSystem.getEnvironment().get("timeProvider");
-    }
-    else {
-      this.timeProvider = SystemTimeProvider.instance;
-    }
-    this.attributes = new JMemFileAttributes(fileType, now);
   }
 
   public abstract void copyTo(JMemInode target, boolean replace, boolean copyAttr) throws IOException;

@@ -16,11 +16,6 @@ public class JMemFileInode extends JMemInode {
     this.storage = ByteBuffer.allocate(0);
   }
 
-  public JMemFileInode(final JMemDirectoryInode parent, final String name, final long now, final JMemFileSystem fileSystem) {
-    super(parent, name, JMemFileAttributes.FileType.FILE, now, fileSystem);
-    this.storage = ByteBuffer.allocate(0);
-  }
-
   @Override
   public void copyTo(final JMemInode target, final boolean replace, final boolean copyAttr) throws IOException {
     final JMemFileInode targetFileInode = (JMemFileInode) target;
@@ -69,7 +64,22 @@ public class JMemFileInode extends JMemInode {
     return (int) bytesToRead;
   }
 
-  public void truncate(final int size) {
+  @Override
+  public void unlink() throws IOException {
+    getParent().unlink(this.getName());
+  }
+
+  private void allocateStorage(final int requiredCapacity) {
+    final int allocatedCapacity = requiredCapacity + (storage.capacity() / 10);
+    final ByteBuffer newStorage = ByteBuffer.allocate(allocatedCapacity);
+    final int pos = storage.position();
+    storage.position(0);
+    newStorage.put(storage);
+    storage = newStorage;
+    storage.position(pos);
+  }
+
+  void truncate(final int size) {
     if (size > storage.capacity()) {
       allocateStorage(size + storage.capacity());
     }
@@ -79,12 +89,7 @@ public class JMemFileInode extends JMemInode {
     }
   }
 
-  @Override
-  public void unlink() throws IOException {
-    getParent().unlink(this.getName());
-  }
-
-  public int writeBytes(final int position, final ByteBuffer src) {
+  int writeBytes(final int position, final ByteBuffer src) {
     final int bytesToWrite = src.remaining();
     if (position + bytesToWrite > storage.capacity()) {
       allocateStorage(position + bytesToWrite);
@@ -100,15 +105,5 @@ public class JMemFileInode extends JMemInode {
     updateATime();
     updateMTime();
     return bytesToWrite;
-  }
-
-  private void allocateStorage(final int requiredCapacity) {
-    final int allocatedCapacity = requiredCapacity + (storage.capacity() / 10);
-    final ByteBuffer newStorage = ByteBuffer.allocate(allocatedCapacity);
-    final int pos = storage.position();
-    storage.position(0);
-    newStorage.put(storage);
-    storage = newStorage;
-    storage.position(pos);
   }
 }
