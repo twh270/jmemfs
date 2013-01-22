@@ -58,9 +58,11 @@ public class JMemPath implements Path {
   public Path getFileName() {
     final int[] indexes = getIndexes();
     if (indexes.length == 0)
-      return null;
+      return new JMemPath(fileSystem, "");
     if (indexes.length == 1) {
-      if (!isEmpty() && !path.startsWith(SEPARATOR))
+      if (isRoot())
+        return null;
+      else if (!path.startsWith(SEPARATOR))
         return this;
     }
     return new JMemPath(fileSystem, getPathElement(indexes.length - 1));
@@ -73,6 +75,10 @@ public class JMemPath implements Path {
 
   @Override
   public Path getName(final int index) {
+    if (isEmpty())
+      return new JMemPath(fileSystem, "");
+    else if (isRoot())
+      throw new IllegalArgumentException("Cannot get name elements for root");
     final int[] indexes = getIndexes();
     if (index < 0 || index >= indexes.length)
       throw new IllegalArgumentException("Index must be between 0 and " + (indexes.length - 1));
@@ -81,13 +87,21 @@ public class JMemPath implements Path {
 
   @Override
   public int getNameCount() {
+    if (isEmpty())
+      return 1;
+    if (isRoot())
+      return 0;
     return getIndexes().length;
   }
 
   @Override
   public Path getParent() {
+    if (isEmpty())
+      return null;
+    if (isRoot())
+      return null;
     final int[] indexes = getIndexes();
-    if (indexes.length == 0)
+    if (indexes.length == 1 && !isAbsolute())
       return null;
     final StringBuilder sb = new StringBuilder();
     if (isAbsolute()) {
@@ -293,10 +307,10 @@ public class JMemPath implements Path {
   private synchronized void buildIndexes() {
     if (nameIndexes == null) {
       if (isEmpty()) {
-        nameIndexes = new int[] { 0 };
-      }
-      else if (SEPARATOR.equals(path)) {
         nameIndexes = new int[0];
+      }
+      else if (isRoot()) {
+        nameIndexes = new int[] { 0 };
       }
       else {
         buildIndexChunks();
@@ -321,7 +335,15 @@ public class JMemPath implements Path {
     return path.length() == 0;
   }
 
+  private boolean isRoot() {
+    return path.equals(SEPARATOR);
+  }
+
   String[] getPathElements() {
+    if (isEmpty())
+      return new String[] { "" };
+    if (isRoot())
+      return new String[0];
     final int count = getIndexes().length;
     final String[] elements = new String[count];
     for (int i = 0; i < count; i++) {

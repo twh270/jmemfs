@@ -176,10 +176,10 @@ public class JMemFileSystem extends FileSystem {
   }
 
   JMemInode assertParentInode(final Path path) throws NoSuchFileException {
-    final JMemPath parent = JMemPath.asJMemPath(path.toAbsolutePath().getParent());
+    final JMemPath parent = (JMemPath) path.toAbsolutePath().getParent();
     final JMemInode parentNode = root.getInodeFor(parent);
     if (parentNode == null)
-      throw new NoSuchFileException(parent.toString());
+      throw new NoSuchFileException(String.valueOf(parent));
     return parentNode;
   }
 

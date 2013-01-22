@@ -120,10 +120,16 @@ public class JMemPathTest {
 
   @Test
   public void shouldGetNameCount() {
-    Path path = Paths.get(JMEM_ROOT);
+    final JMemFileSystemProvider p = new JMemFileSystemProvider();
+    final JMemFileSystem fs = p.theFileSystem;
+    Path path = Paths.get(JMEM_URI("/"));
     assertEquals(0, path.getNameCount());
+    path = new JMemPath(fs, "path");
+    assertEquals(1, path.getNameCount());
     path = Paths.get(JMEM_URI("/two/path"));
     assertEquals(2, path.getNameCount());
+    path = new JMemPath(fs, "");
+    assertEquals(1, path.getNameCount());
   }
 
   @Test
@@ -159,6 +165,15 @@ public class JMemPathTest {
     path = new JMemPath(fs, "relative/path/here");
     parent = path.getParent();
     assertEquals("relative/path", parent.toString());
+
+    path = new JMemPath(fs, "");
+    assertEquals(null, path.getParent());
+
+    path = new JMemPath(fs, "/temp");
+    assertEquals("/", path.getParent().toString());
+
+    path = new JMemPath(fs, "temp");
+    assertEquals(null, path.getParent());
   }
 
   @Test

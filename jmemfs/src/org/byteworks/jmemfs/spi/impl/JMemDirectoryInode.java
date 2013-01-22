@@ -61,6 +61,8 @@ public class JMemDirectoryInode extends JMemInode {
 
   @Override
   public JMemInode getInodeFor(final Path path) {
+    if (path == null)
+      return this;
     JMemInode curr = this;
     if (path.getNameCount() == 1)
       return getInodeFor(path.getFileName().toString());
