@@ -22,6 +22,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -137,6 +138,11 @@ public class JMemFileSystem extends FileSystem {
     throw new UnsupportedOperationException("not implemented");
   }
 
+  private <A extends BasicFileAttributes> void assertValidAttributeClass(final Class<A> type) {
+    if (!(type == JMemFileAttributes.class) && !(type == BasicFileAttributes.class))
+      throw new UnsupportedOperationException("Unsupported attribute type " + type.getName());
+  }
+
   private SeekableByteChannel createFile(final Path path, final Set< ? extends OpenOption> options, final FileAttribute< ? >[] attrs) throws NoSuchFileException,
       FileAlreadyExistsException {
     final JMemInode parent = assertParentInode(path);
@@ -235,6 +241,10 @@ public class JMemFileSystem extends FileSystem {
     final JMemInode fileInode = parent.getInodeFor(path.getFileName());
     if (fileInode == null)
       throw new NoSuchFileException("File does not exist: " + path.toString());
+    if (options.contains(StandardOpenOption.APPEND) && options.contains(StandardOpenOption.READ))
+      throw new IllegalArgumentException("APPEND|READ is not allowed on file open");
+    if (options.contains(StandardOpenOption.TRUNCATE_EXISTING) && options.contains(StandardOpenOption.APPEND))
+      throw new IllegalArgumentException("TRUNCATE_EXISTING|APPEND is not allowed on file open");
     final SeekableByteChannel channel = fileInode.createChannel();
     if (options.contains(TRUNCATE_EXISTING)) {
       channel.truncate(0);
@@ -253,11 +263,6 @@ public class JMemFileSystem extends FileSystem {
     if (inode == null)
       throw new NoSuchFileException("No such file: " + path.toString());
     return (A) inode.getAttributes();
-  }
-
-  private <A extends BasicFileAttributes> void assertValidAttributeClass(final Class<A> type) {
-    if (!(type == JMemFileAttributes.class) && !(type == BasicFileAttributes.class))
-      throw new UnsupportedOperationException("Unsupported attribute type " + type.getName());
   }
 
   JMemInode root() {

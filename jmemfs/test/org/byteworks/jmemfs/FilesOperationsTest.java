@@ -5,14 +5,19 @@ import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +29,62 @@ import org.byteworks.jmemfs.spi.impl.JMemTimeProvider;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+/*
+ * DONE InputStream newInputStream(Path, OpenOption...) throws IOException;
+ * DONE OutputStream newOutputStream(Path, OpenOption...) throws IOException; 
+ * java.nio.channels.SeekableByteChannel newByteChannel(Path, Set<? extends OpenOption>, attribute.FileAttribute<?>...) throws IOException; 
+ * java.nio.channels.SeekableByteChannel newByteChannel(Path, OpenOption...) throws IOException; 
+ * DirectoryStream<Path> newDirectoryStream(Path) throws IOException; 
+ * DirectoryStream<Path> newDirectoryStream(Path, String) throws IOException;
+ * DirectoryStream<Path> newDirectoryStream(Path, DirectoryStream$Filter<? super Path>) throws IOException; 
+ * Path createFile(Path, attribute.FileAttribute<?>...) throws IOException; 
+ * Path createDirectory(Path, attribute.FileAttribute<?>...) throws IOException;
+ * Path createDirectories(Path, attribute.FileAttribute<?>...) throws IOException; 
+ * Path createTempFile(Path, String, String, attribute.FileAttribute<?>...) throws IOException; 
+ * Path createTempFile(String, String, attribute.FileAttribute<?>...) throws IOException; 
+ * Path createTempDirectory(Path, String, attribute.FileAttribute<?>...) throws IOException; 
+ * Path createTempDirectory(String, attribute.FileAttribute<?>...) throws IOException; 
+ * Path createSymbolicLink(Path, Path, attribute.FileAttribute<?>...) throws IOException; 
+ * Path createLink(Path, Path) throws IOException; 
+ * void delete(Path) throws IOException; 
+ * boolean deleteIfExists(Path) throws IOException; 
+ * Path copy(Path, Path, CopyOption...) throws IOException; 
+ * Path move(Path, Path, CopyOption...) throws IOException; 
+ * Path readSymbolicLink(Path) throws IOException; 
+ * FileStore getFileStore(Path) throws IOException; 
+ * boolean isSameFile(Path, Path) throws IOException; 
+ * boolean isHidden(Path) throws IOException; String probeContentType(Path) throws IOException; 
+ * <V extends attribute.FileAttributeView> V getFileAttributeView(Path, Class<V>, LinkOption...); 
+ * <A extends attribute.BasicFileAttributes> A readAttributes(Path, Class<A>, LinkOption...) throws IOException; 
+ * Path setAttribute(Path, String, Object, LinkOption...) throws IOException;
+ * Object getAttribute(Path, String, LinkOption...) throws IOException;
+ * Map<String, Object> readAttributes(Path, String, LinkOption...) throws IOException; 
+ * Set<attribute.PosixFilePermission> getPosixFilePermissions(Path, LinkOption...) throws IOException; 
+ * Path setPosixFilePermissions(Path, Set<attribute.PosixFilePermission>) throws IOException; 
+ * attribute.UserPrincipal getOwner(Path, LinkOption...) throws IOException; 
+ * Path setOwner(Path, attribute.UserPrincipal) throws IOException; 
+ * boolean isSymbolicLink(Path); boolean isDirectory(Path, LinkOption...); 
+ * boolean isRegularFile(Path, LinkOption...);
+ * attribute.FileTime getLastModifiedTime(Path, LinkOption...) throws IOException; 
+ * Path setLastModifiedTime(Path, attribute.FileTime) throws IOException; 
+ * long size(Path) throws IOException; 
+ * boolean exists(Path, LinkOption...); 
+ * boolean notExists(Path, LinkOption...); 
+ * boolean isReadable(Path); 
+ * boolean isWritable(Path); 
+ * boolean isExecutable(Path);
+ * Path walkFileTree(Path, Set<FileVisitOption>, int, FileVisitor<? super Path>) throws IOException; 
+ * Path walkFileTree(Path, FileVisitor<? super Path>) throws IOException; 
+ * BufferedReader newBufferedReader(Path, java.nio.charset.Charset) throws IOException; 
+ * BufferedWriter newBufferedWriter(Path, java.nio.charset.Charset, OpenOption...) throws IOException; 
+ * long copy(InputStream, Path, CopyOption...) throws IOException; 
+ * long copy(Path, OutputStream) throws IOException; 
+ * byte[] readAllBytes(Path) throws IOException; 
+ * List<String> readAllLines(Path, java.nio.charset.Charset) throws IOException; 
+ * Path write(Path, byte[], OpenOption...) throws IOException; 
+ * Path write(Path, Iterable<? extends CharSequence>, java.nio.charset.Charset, OpenOption...) throws IOException;
+ */
 
 public class FilesOperationsTest {
   private static final String TEST_STRING = "This is a string";
@@ -73,10 +134,12 @@ public class FilesOperationsTest {
     final Path target = new JMemPath(fileSystem, "/target.txt");
     Files.write(source, BYTES);
     Files.copy(source, target);
-    final byte[] readBytes = Files.readAllBytes(target);
+    byte[] readBytes = Files.readAllBytes(target);
     assertArrayEquals(BYTES, readBytes);
     Files.copy(new ByteArrayInputStream(BYTES2), source, REPLACE_EXISTING);
     Files.copy(source, target, REPLACE_EXISTING);
+    readBytes = Files.readAllBytes(target);
+    assertArrayEquals(BYTES2, readBytes);
   }
 
   @Test
@@ -196,8 +259,39 @@ public class FilesOperationsTest {
     final JMemFileSystem fs = p.getTheFileSystem();
     final JMemPath path = new JMemPath(fs, "/output.txt");
     Files.write(path, BYTES);
-    final FileTime t = (FileTime) Files.getAttribute(path, "lastModifiedTime");
+    FileTime t = (FileTime) Files.getAttribute(path, "lastModifiedTime");
     assertEquals(now, t.toMillis());
+    t = (FileTime) Files.getAttribute(path, "lastAccessTime");
+    assertEquals(now, t.toMillis());
+    t = (FileTime) Files.getAttribute(path, "creationTime");
+    assertEquals(now, t.toMillis());
+    final long size = (long) Files.getAttribute(path, "size");
+    assertEquals(BYTES.length, size);
+    boolean isRegularFile = (boolean) Files.getAttribute(path, "isRegularFile");
+    assertTrue(isRegularFile);
+    boolean isDirectory = (boolean) Files.getAttribute(path, "isDirectory");
+    assertFalse(isDirectory);
+    final Path tempPath = new JMemPath(fs, "/temp");
+    Files.createDirectory(tempPath);
+    isRegularFile = (boolean) Files.getAttribute(tempPath, "isRegularFile");
+    assertFalse(isRegularFile);
+    isDirectory = (boolean) Files.getAttribute(tempPath, "isDirectory");
+    assertTrue(isDirectory);
+    // TODO symbolic links and fileKey not supported yet
+  }
+
+  @Test
+  public void shouldGetSeekableByteChannelForAllowedOpenOptions() throws IOException {
+    final JMemPath path = new JMemPath(fileSystem, "/output.txt");
+    Files.write(path, BYTES);
+    SeekableByteChannel channel = Files.newByteChannel(path, StandardOpenOption.APPEND);
+    channel.close();
+    channel = Files.newByteChannel(path, StandardOpenOption.READ);
+    channel.close();
+    channel = Files.newByteChannel(path, StandardOpenOption.WRITE);
+    channel.close();
+    channel = Files.newByteChannel(path, StandardOpenOption.WRITE, StandardOpenOption.READ);
+    channel.close();
   }
 
   @Test(expected = IOException.class)
@@ -207,9 +301,66 @@ public class FilesOperationsTest {
     assertArrayEquals(BYTES, readBytes);
   }
 
+  @Test
+  public void shouldNotGetSeekableByteChannelForInvalidOpenCombinations() throws IOException {
+    final JMemPath path = new JMemPath(fileSystem, "/output.txt");
+    Files.write(path, BYTES);
+    try {
+      final SeekableByteChannel channel = Files.newByteChannel(path, StandardOpenOption.APPEND, StandardOpenOption.READ);
+      fail("Expected IOException");
+    }
+    catch (final IllegalArgumentException e) {
+      // expected
+    }
+    try {
+      final SeekableByteChannel channel = Files.newByteChannel(path, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.APPEND);
+      fail("Expected IOException");
+    }
+    catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
   @Test(expected = IOException.class)
   public void shouldNotReadNonexistentFile() throws IOException {
     /*final byte[] inputBytes = */Files.readAllBytes(new JMemPath(fileSystem, "/output.txt"));
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldOnlyAllowReadOnNewInputStream() throws IOException {
+    final JMemPath path = new JMemPath(fileSystem, "/output.txt");
+    Files.write(path, BYTES);
+    final InputStream is = Files.newInputStream(path, StandardOpenOption.READ, StandardOpenOption.CREATE_NEW);
+    is.close();
+  }
+
+  @Test
+  public void shouldOpenExistingWithCreateOptionWithoutTruncating() throws IOException {
+    final JMemPath path = new JMemPath(fileSystem, "/output.txt");
+    Files.write(path, BYTES);
+    SeekableByteChannel channel = Files.newByteChannel(path, StandardOpenOption.CREATE);
+    channel.close();
+    channel = Files.newByteChannel(path, StandardOpenOption.READ);
+    assertEquals(BYTES.length, channel.size());
+  }
+
+  @Test
+  public void shouldOpenNewInputStream() throws IOException {
+    final JMemPath path = new JMemPath(fileSystem, "/output.txt");
+    Files.write(path, BYTES);
+    final InputStream is = Files.newInputStream(path);
+    final byte[] bytes = new byte[BYTES.length];
+    assertEquals(BYTES.length, is.read(bytes));
+    assertArrayEquals(BYTES, bytes);
+  }
+
+  @Test
+  public void shouldOpenNewOutputStream() throws IOException {
+    final JMemPath path = new JMemPath(fileSystem, "/output.txt");
+    final OutputStream os = Files.newOutputStream(path);
+    os.write(BYTES);
+    os.close();
+    Files.delete(path);
   }
 
   @Test
@@ -221,7 +372,6 @@ public class FilesOperationsTest {
 
   @Test
   public void shouldTruncateExistingFileWithWrite() throws IOException {
-    final byte[] BYTES = TEST_STRING.getBytes();
     Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES);
     Files.write(new JMemPath(fileSystem, "/output.txt"), BYTES, TRUNCATE_EXISTING);
     final byte[] readBytes = Files.readAllBytes(new JMemPath(fileSystem, "/output.txt"));
