@@ -292,7 +292,7 @@ public class JMemPath implements Path {
 
   @Override
   public File toFile() {
-    return new File(toString());
+    return new JMemFile(this);
   }
 
   @Override

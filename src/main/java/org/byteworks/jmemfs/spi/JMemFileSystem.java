@@ -40,6 +40,8 @@ import static java.nio.file.StandardOpenOption.WRITE;
 import static org.byteworks.jmemfs.spi.JMemConstants.SEPARATOR;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
@@ -68,11 +70,24 @@ import org.byteworks.jmemfs.spi.impl.JMemFileAttributes;
 import org.byteworks.jmemfs.spi.impl.JMemInode;
 
 public class JMemFileSystem extends FileSystem {
+  public static final URI ROOT_URI;
+  
   private final JMemFileSystemProvider provider;
   private final Map<String, ? > env;
   private JMemDirectoryInode root;
   private String defaultDir;
 
+  static {
+    URI root = null;
+    try {
+      root = new URI("jmemfs:/");
+    }
+    catch (URISyntaxException e) {
+      e.printStackTrace();
+    }
+    ROOT_URI = root;
+  }
+  
   public JMemFileSystem(final JMemFileSystemProvider jMemFileSystemProvider) {
     this.provider = jMemFileSystemProvider;
     this.env = new HashMap<String, Object>();
